@@ -1,14 +1,14 @@
 """create fcess_prices table
 
 Revision ID: 20260401000001
-Revises: 
+Revises:
 Create Date: 2026-04-01 00:00:01
 """
 
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "20260401000001"
