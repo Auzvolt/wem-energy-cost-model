@@ -151,10 +151,7 @@ class TariffSchedule(Base):
     sites = relationship("Site", back_populates="tariff")
 
     def __repr__(self) -> str:
-        return (
-            f"<TariffSchedule id={self.id} code={self.tariff_code!r} "
-            f"from={self.effective_from}>"
-        )
+        return f"<TariffSchedule id={self.id} code={self.tariff_code!r} from={self.effective_from}>"
 
 
 class LossFactor(Base):
@@ -451,9 +448,7 @@ class PriceCurve(Base):
 
     scenario = relationship("Scenario", back_populates="price_curves")
 
-    __table_args__ = (
-        Index("ix_price_curves_product_interval", "product", "interval_start"),
-    )
+    __table_args__ = (Index("ix_price_curves_product_interval", "product", "interval_start"),)
 
     def __repr__(self) -> str:
         return (
