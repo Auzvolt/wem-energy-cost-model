@@ -165,9 +165,7 @@ class TestWholesaleDispatchSolve:
                 f"bess_net={net_bess:.6f}, market_net={net_market:.6f}"
             )
 
-    def test_objective_value_positive_when_exporting(
-        self, solver: pyo.SolverFactory
-    ) -> None:
+    def test_objective_value_positive_when_exporting(self, solver: pyo.SolverFactory) -> None:
         """With positive prices and available SoC, revenue should be positive."""
         prices = {0: 100.0, 1: 100.0}
         model = _build_model(prices, capacity_kwh=1000.0, power_kw=500.0, soc_max_pct=1.0)
