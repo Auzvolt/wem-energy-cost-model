@@ -107,7 +107,7 @@ class TestSyntheticProfile:
         profile = synthetic_generation_profile_kw(
             n_intervals=48, interval_duration_h=0.5, system_capacity_kwp=100.0
         )
-        assert profile[0] == pytest.approx(0.0)   # 00:00
+        assert profile[0] == pytest.approx(0.0)  # 00:00
         assert profile[11] == pytest.approx(0.0)  # 05:30
 
     def test_generation_during_day(self) -> None:
@@ -285,9 +285,7 @@ class TestAddSolarConstraints:
         cfg = self._cfg()
         interval_h = 0.5
         add_solar_constraints(m, cfg, n_intervals=4, interval_duration_h=interval_h)
-        expected = sum(
-            pyo.value(m.solar_gen_kw[t]) * interval_h for t in range(4)
-        )
+        expected = sum(pyo.value(m.solar_gen_kw[t]) * interval_h for t in range(4))
         assert float(pyo.value(m.solar_total_gen_kwh)) == pytest.approx(expected, rel=1e-6)
 
     def test_curtailment_cost_zero_by_default(self) -> None:

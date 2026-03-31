@@ -173,8 +173,7 @@ def ac_generation_kw(
         irr = config.irradiance_w_per_m2
         if len(irr) != n_intervals:
             raise ValueError(
-                f"irradiance_w_per_m2 length ({len(irr)}) must equal "
-                f"n_intervals ({n_intervals})"
+                f"irradiance_w_per_m2 length ({len(irr)}) must equal n_intervals ({n_intervals})"
             )
         if config.panel_area_m2 is None:
             raise ValueError("panel_area_m2 is required when irradiance_w_per_m2 is provided")
@@ -240,9 +239,7 @@ def add_solar_constraints(
         return
 
     if len(model.T) != n_intervals:
-        raise ValueError(
-            f"model.T length ({len(model.T)}) != n_intervals ({n_intervals})"
-        )
+        raise ValueError(f"model.T length ({len(model.T)}) != n_intervals ({n_intervals})")
 
     gen_profile = ac_generation_kw(config, n_intervals, interval_duration_h)
 
@@ -283,16 +280,14 @@ def add_solar_constraints(
 
     model.solar_curtailment_cost_aud = pyo.Expression(
         expr=sum(
-            model.solar_curtailed_kw[t] * interval_duration_h
-            * config.curtailment_cost_aud_per_kwh
+            model.solar_curtailed_kw[t] * interval_duration_h * config.curtailment_cost_aud_per_kwh
             for t in model.T
         ),
         doc="Total curtailment cost over horizon (AUD)",
     )
 
     logger.debug(
-        "Solar PV constraints added: %d intervals, capacity=%.1f kWp, "
-        "peak_gen=%.1f kW",
+        "Solar PV constraints added: %d intervals, capacity=%.1f kWp, peak_gen=%.1f kW",
         n_intervals,
         config.system_capacity_kwp,
         max(gen_profile) if gen_profile else 0.0,
