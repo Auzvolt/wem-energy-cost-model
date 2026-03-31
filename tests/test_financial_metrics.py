@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 import math
+
 import pytest
-from financial.metrics import (
-    npv,
-    irr,
-    lcoe,
-    simple_payback,
+
+from app.financial.metrics import (
     discounted_payback,
     equity_multiple,
+    irr,
+    lcoe,
+    npv,
+    simple_payback,
 )
 
 
