@@ -1,42 +1,29 @@
-"""Tests for app/config.py."""
+"""Tests for application configuration."""
 
-import pytest
-
-
-def test_config_loads_defaults() -> None:
-    """Config should return defaults when env vars are not set."""
-    from app import config
-
-    # DATABASE_URL has a hardcoded default
-    assert config.DATABASE_URL is not None
-    assert "postgresql" in config.DATABASE_URL
+from __future__ import annotations
 
 
-def test_config_get_returns_none_for_missing() -> None:
-    """config.get() should return None for unknown keys."""
-    from app import config
-
-    assert config.get("NONEXISTENT_KEY_XYZ") is None
-
-
-def test_config_get_returns_default() -> None:
-    """config.get() should return the supplied default."""
-    from app import config
-
-    assert config.get("NONEXISTENT_KEY_XYZ", "fallback") == "fallback"
+def test_settings_defaults(test_settings):
+    """Settings loads with expected default values."""
+    assert test_settings.aemo_api_base_url == "https://data.wa.aemo.com.au"
+    assert test_settings.log_level == "DEBUG"
+    assert test_settings.database_url == "sqlite:///./test.db"
 
 
-def test_config_require_raises_for_missing() -> None:
-    """config.require() should raise RuntimeError for missing keys."""
-    from app import config
-
-    with pytest.raises(RuntimeError, match="NONEXISTENT_KEY_XYZ"):
-        config.require("NONEXISTENT_KEY_XYZ")
+def test_settings_api_key_defaults_empty(test_settings):
+    """API key defaults to empty string (public data access)."""
+    assert test_settings.aemo_api_key == ""
 
 
-def test_config_require_returns_value(monkeypatch: pytest.MonkeyPatch) -> None:
-    """config.require() should return the env var value when set."""
-    monkeypatch.setenv("TEST_SECRET_KEY", "my-secret")
-    from app import config
+def test_settings_can_override():
+    """Settings values can be overridden at construction time."""
+    from app.config import Settings
 
-    assert config.require("TEST_SECRET_KEY") == "my-secret"
+    s = Settings(
+        database_url="postgresql://localhost/test",
+        aemo_api_base_url="https://custom.example.com",
+        log_level="WARNING",
+    )
+    assert s.database_url == "postgresql://localhost/test"
+    assert s.aemo_api_base_url == "https://custom.example.com"
+    assert s.log_level == "WARNING"
