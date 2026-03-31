@@ -1,0 +1,44 @@
+{
+  "fixture_note": "SYNTHETIC DATA — no real customer identifiers. NMI, name, and address are fabricated.",
+  "customer_name": "SYNTHETIC-CUSTOMER-002",
+  "nmi": "SYNTH0000002",
+  "address": "2 Fabricated Ave, Synthetic WA 6000",
+  "period_start": "2025-07-01",
+  "period_end": "2025-07-31",
+  "tariff_code": "RT5",
+  "line_items": [
+    {
+      "description": "On-Peak Energy Charge (07:00-23:00 Mon-Fri)",
+      "kwh": 18500.0,
+      "rate_c_per_kwh": 20.43,
+      "amount": 3779.55
+    },
+    {
+      "description": "Off-Peak Energy Charge",
+      "kwh": 12200.0,
+      "rate_c_per_kwh": 10.12,
+      "amount": 1234.64
+    },
+    {
+      "description": "Demand Charge — Rolling 12-month peak demand (58 kW recorded this month)",
+      "kw_demand": 58.0,
+      "rate_dollars_per_kw_per_month": 16.50,
+      "amount": 957.00
+    },
+    {
+      "description": "Daily Supply Charge (31 days)",
+      "days": 31,
+      "rate_dollars_per_day": 3.45,
+      "amount": 106.95
+    },
+    {
+      "description": "Metering Charge (31 days)",
+      "days": 31,
+      "rate_dollars_per_day": 0.35,
+      "amount": 10.85
+    }
+  ],
+  "total_exc_gst": 6088.99,
+  "gst": 608.90,
+  "total_inc_gst": 6697.89
+}
