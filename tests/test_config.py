@@ -1,7 +1,5 @@
 """Tests for app/config.py."""
 
-import os
-
 import pytest
 
 

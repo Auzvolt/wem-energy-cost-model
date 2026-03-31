@@ -21,7 +21,8 @@ def require(key: str) -> str:
 
 
 # Common config values
-DATABASE_URL: str = get("DATABASE_URL", "postgresql://user:password@localhost:5432/wem_energy") or ""
+_DB_DEFAULT = "postgresql://user:password@localhost:5432/wem_energy"
+DATABASE_URL: str = get("DATABASE_URL", _DB_DEFAULT) or ""
 AEMO_API_BASE_URL: str = get("AEMO_API_BASE_URL", "https://data.wa.aemo.com.au") or ""
 AEMO_API_KEY: str | None = get("AEMO_API_KEY")
 LOG_LEVEL: str = get("LOG_LEVEL", "INFO") or "INFO"
