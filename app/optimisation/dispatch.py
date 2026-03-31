@@ -113,7 +113,7 @@ def add_wholesale_dispatch(
         # Already added — should not happen in normal usage.
         return
 
-    model._dispatch_revenue_expr = revenue_expr  # type: ignore[attr-defined]
+    setattr(model, "_dispatch_revenue_expr", revenue_expr)  # noqa: B010
 
     if hasattr(model, "objective"):
         # Extend an existing Objective (e.g. BESS degradation cost added earlier).
