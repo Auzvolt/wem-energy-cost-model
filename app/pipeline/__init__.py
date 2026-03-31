@@ -1,1 +1,1 @@
-"""Pipeline package."""
+"""WEM data pipeline package."""
