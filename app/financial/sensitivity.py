@@ -3,6 +3,7 @@
 Produces tornado-chart data by sweeping individual financial parameters
 while holding all others at their base values.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable

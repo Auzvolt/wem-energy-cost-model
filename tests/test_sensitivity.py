@@ -1,8 +1,8 @@
 """Unit tests for the sensitivity analysis engine (financial.sensitivity)."""
+
 from __future__ import annotations
 
 import pytest
-
 from financial.sensitivity import (
     DEFAULT_SENSITIVITY_PARAMS,
     SensitivityParam,
@@ -96,9 +96,7 @@ class TestRunSensitivity:
         assert len(result.rows) == len(params)
 
     def test_base_npv_stored(self) -> None:
-        result = run_sensitivity(
-            _simple_cashflow_fn, base_npv=42_000.0, params=self._make_params()
-        )
+        result = run_sensitivity(_simple_cashflow_fn, base_npv=42_000.0, params=self._make_params())
         assert result.base_npv == pytest.approx(42_000.0)
 
     def test_rows_sorted_by_abs_npv_delta_descending(self) -> None:
@@ -110,9 +108,7 @@ class TestRunSensitivity:
 
     def test_npv_values_computed_correctly(self) -> None:
         """npv_low and npv_high should be cashflow_fn evaluated at low/high values."""
-        params = [
-            SensitivityParam(name="price", base_value=100.0, low_factor=0.6, high_factor=1.4)
-        ]
+        params = [SensitivityParam(name="price", base_value=100.0, low_factor=0.6, high_factor=1.4)]
         result = run_sensitivity(_simple_cashflow_fn, base_npv=100_000.0, params=params)
         row = result.rows[0]
         assert row.npv_low == pytest.approx(60.0 * 1_000.0)
