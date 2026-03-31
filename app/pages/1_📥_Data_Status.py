@@ -7,8 +7,8 @@ import streamlit as st
 st.set_page_config(page_title="Data Status", layout="wide")
 st.title("📥 Data Status")
 st.info(
-    "Pipeline health dashboard coming soon. This page will show last ingest times, "
-    "data gaps, and trigger manual refreshes."
+    "Pipeline health dashboard coming soon. "
+    "This page will show last ingest times, data gaps, and trigger manual refreshes."
 )
 
 st.subheader("Data Sources")
