@@ -1,4 +1,5 @@
 """Tests for assumption library models and repository logic."""
+
 from __future__ import annotations
 
 from datetime import date
@@ -19,6 +20,7 @@ from app.assumptions.models import (
 # AssumptionSet model tests
 # ---------------------------------------------------------------------------
 
+
 class TestAssumptionSet:
     def test_is_active_when_not_superseded(self) -> None:
         assumption_set = AssumptionSet(
@@ -29,6 +31,7 @@ class TestAssumptionSet:
 
     def test_is_inactive_when_superseded(self) -> None:
         import uuid
+
         assumption_set = AssumptionSet(
             name="FY2024",
             effective_from=date(2024, 1, 1),
@@ -58,9 +61,11 @@ class TestAssumptionSet:
 # AssumptionEntry model tests
 # ---------------------------------------------------------------------------
 
+
 class TestAssumptionEntry:
     def test_create_entry_with_dict_value(self) -> None:
         import uuid
+
         set_id = uuid.uuid4()
         entry = AssumptionEntry(
             set_id=set_id,
@@ -75,6 +80,7 @@ class TestAssumptionEntry:
 
     def test_create_entry_with_numeric_value(self) -> None:
         import uuid
+
         entry = AssumptionEntry(
             set_id=uuid.uuid4(),
             category=AssumptionCategory.CAPEX,
@@ -87,6 +93,7 @@ class TestAssumptionEntry:
 
     def test_entry_id_auto_generated(self) -> None:
         import uuid
+
         entry = AssumptionEntry(
             set_id=uuid.uuid4(),
             category=AssumptionCategory.OPEX,
@@ -99,6 +106,7 @@ class TestAssumptionEntry:
 # ---------------------------------------------------------------------------
 # Typed assumption wrapper tests
 # ---------------------------------------------------------------------------
+
 
 class TestTariffScheduleAssumption:
     def test_default_empty_tou_windows(self) -> None:

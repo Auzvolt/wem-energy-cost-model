@@ -2,6 +2,7 @@
 
 Provides database access for assumption sets and entries using SQLAlchemy async.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -16,6 +17,7 @@ from app.assumptions.models import AssumptionCategory, AssumptionEntry, Assumpti
 # ORM table references (imported from db.models once available)
 # The repository uses raw SQL-compatible queries via SQLAlchemy core/ORM.
 # ---------------------------------------------------------------------------
+
 
 async def get_active_set(session: AsyncSession, as_of_date: date) -> AssumptionSet | None:
     """Retrieve the active assumption set as of a given date.
@@ -199,6 +201,5 @@ async def get_entries_by_category(
     )
     result = await session.execute(stmt)
     return [
-        AssumptionEntry.model_validate(row, from_attributes=True)
-        for row in result.scalars().all()
+        AssumptionEntry.model_validate(row, from_attributes=True) for row in result.scalars().all()
     ]

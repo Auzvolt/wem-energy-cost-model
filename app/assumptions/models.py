@@ -3,6 +3,7 @@
 Provides type-safe representations of versioned assumption sets and entries,
 covering tariffs, capex, degradation curves, and solar yield profiles.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -16,6 +17,7 @@ from pydantic import BaseModel, Field
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class AssumptionCategory(StrEnum):
     TARIFF = "tariff"
     CAPEX = "capex"
@@ -28,6 +30,7 @@ class AssumptionCategory(StrEnum):
 # Core models
 # ---------------------------------------------------------------------------
 
+
 class AssumptionEntry(BaseModel):
     """A single key-value assumption entry within a set."""
 
@@ -35,7 +38,7 @@ class AssumptionEntry(BaseModel):
     set_id: uuid.UUID
     category: AssumptionCategory
     key: str
-    value: Any                          # JSONB — can be dict, list, float, str
+    value: Any  # JSONB — can be dict, list, float, str
     unit: str | None = None
     source: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -66,6 +69,7 @@ class AssumptionSet(BaseModel):
 # Typed wrappers for specific assumption categories
 # ---------------------------------------------------------------------------
 
+
 class TariffScheduleAssumption(BaseModel):
     """Parsed tariff schedule assumption entry value."""
 
@@ -75,24 +79,24 @@ class TariffScheduleAssumption(BaseModel):
     demand_charge: dict[str, Any] | None = None
     dlf: float = 1.0
     tlf: float = 1.0
-    daily_charge: float = 0.0   # $/day fixed charge
+    daily_charge: float = 0.0  # $/day fixed charge
 
 
 class CapexAssumption(BaseModel):
     """Capital expenditure assumption for an asset class."""
 
-    asset_type: str                   # "solar_pv", "bess", "ocgt", etc.
-    cost_per_unit: float              # e.g. $/kW or $/kWh
-    unit: str                         # "$/kW", "$/kWh", "$/unit"
+    asset_type: str  # "solar_pv", "bess", "ocgt", etc.
+    cost_per_unit: float  # e.g. $/kW or $/kWh
+    unit: str  # "$/kW", "$/kWh", "$/unit"
     installation_factor: float = 1.0  # multiplier for installed cost vs equipment cost
-    contingency_pct: float = 0.0      # contingency as a fraction (e.g. 0.10 = 10%)
+    contingency_pct: float = 0.0  # contingency as a fraction (e.g. 0.10 = 10%)
     currency_year: int = 2025
 
 
 class DegradationCurve(BaseModel):
     """Battery degradation model parameters."""
 
-    chemistry: str               # "NMC", "LFP", etc.
+    chemistry: str  # "NMC", "LFP", etc.
     capacity_fade_pct_per_cycle: float  # % of nameplate per full-equivalent cycle
     calendar_degradation_pct_per_year: float  # % of nameplate per year (calendar aging)
     eol_capacity_pct: float = 80.0  # end-of-life threshold (% nameplate)
@@ -102,8 +106,8 @@ class SolarYieldProfile(BaseModel):
     """Monthly normalised capacity factors for a location (1 kWp basis)."""
 
     location: str
-    monthly_cf: list[float]   # 12 values, Jan-Dec, fraction of installed kWp
-    tracking: str = "fixed"   # "fixed", "single_axis", "dual_axis"
+    monthly_cf: list[float]  # 12 values, Jan-Dec, fraction of installed kWp
+    tracking: str = "fixed"  # "fixed", "single_axis", "dual_axis"
     tilt_deg: float | None = None
     azimuth_deg: float | None = None  # 0=North (southern hemisphere convention)
 
