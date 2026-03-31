@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, FieldValidationInfo, ValidationError, field_validator
 
 if TYPE_CHECKING:
     import pyomo.environ as pyo
@@ -53,12 +53,9 @@ class BessConfig(BaseModel):
 
     @field_validator("soc_max_pct")
     @classmethod
-    def soc_window_valid(cls, v: float, info: object) -> float:  # noqa: ANN401
+    def soc_window_valid(cls, v: float, info: FieldValidationInfo) -> float:
         """Ensure soc_max > soc_min."""
-        try:
-            soc_min = info.data.get("soc_min_pct", 0.0)  # type: ignore[union-attr]
-        except AttributeError:
-            soc_min = 0.0
+        soc_min: float = (info.data or {}).get("soc_min_pct", 0.0)
         if v <= soc_min:
             raise ValueError("soc_max_pct must be greater than soc_min_pct")
         return v
