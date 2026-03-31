@@ -2,6 +2,12 @@
 
 A full-stack Python application for modelling energy costs in the Western Australian Wholesale Electricity Market (WEM). It combines a live AEMO WA data pipeline, a linear/mixed-integer programming optimisation engine, an interactive Streamlit dashboard, a PostgreSQL database, and PDF/Excel export capabilities.
 
+## Live App
+
+> **Deployed on Streamlit Community Cloud:**  
+> <https://auzvolt-wem-energy-cost-model.streamlit.app>  
+> *(URL active after first deployment — see [docs/deployment.md](docs/deployment.md))*
+
 ## Components
 
 | Component | Description |
@@ -39,8 +45,10 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# Edit .env with your DATABASE_URL and AEMO_API_KEY
+# Edit .env — set DATABASE_URL, AEMO_API_KEY, and AUTH_COOKIE_KEY
 ```
+
+See `.env.example` for a full description of every variable.
 
 ### 4. Initialise the database
 
@@ -51,8 +59,23 @@ alembic upgrade head
 ### 5. Run the Streamlit app
 
 ```bash
-streamlit run app/main.py
+streamlit run app/streamlit_app.py
 ```
+
+## Deployment
+
+For full deployment instructions (Streamlit Community Cloud + Supabase/Neon),
+see **[docs/deployment.md](docs/deployment.md)**.
+
+### Required secrets (Streamlit Cloud)
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `AEMO_API_BASE_URL` | AEMO WA Open Data base URL |
+| `AEMO_API_KEY` | AEMO APIM subscription key (blank for public data) |
+| `AUTH_COOKIE_KEY` | Random 32-byte hex secret for session cookies |
+| `LOG_LEVEL` | Log level (`INFO` recommended) |
 
 ## Development
 
@@ -80,19 +103,23 @@ alembic revision --autogenerate -m "description_of_change"
 ```
 app/
   config.py          — environment variable loading
-  main.py            — Streamlit entry point
+  streamlit_app.py   — Streamlit entry point
+  main.py            — legacy entry point (redirects to streamlit_app)
   db/
     models.py        — SQLAlchemy ORM models
     session.py       — DB session factory
   pipeline/
     aemo_client.py   — AEMO WA API client
-  optimiser/
-    lp_model.py      — Pyomo LP/MILP model
+  optimisation/      — Pyomo LP/MILP models
   exports/
     pdf_export.py    — PDF report generation
     excel_export.py  — Excel workbook export
+docs/
+  deployment.md      — Deployment guide (Streamlit Cloud + PostgreSQL)
 migrations/          — Alembic migration scripts
 tests/               — pytest test suite
+.streamlit/
+  config.toml        — Streamlit server and theme configuration
 ```
 
 ## License
