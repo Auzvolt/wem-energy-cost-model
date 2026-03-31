@@ -86,9 +86,7 @@ def login() -> bool:
         _COOKIE_EXPIRY_DAYS,
     )
 
-    _name, authentication_status, _username = authenticator.login(
-        "Login", "main"
-    )
+    _name, authentication_status, _username = authenticator.login("Login", "main")
 
     if authentication_status is True:
         # Store role in session state
