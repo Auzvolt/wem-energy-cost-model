@@ -67,3 +67,6 @@ warn_unused_ignores = true
 addopts = "--ignore=app/main.py"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "integration: marks tests as integration tests (require external services or live DB)",
+]
