@@ -150,7 +150,7 @@ def test_normalise_timestamps_converts_to_utc() -> None:
     )
     result = normalise_timestamps(df, "timestamp")
     assert pd.api.types.is_datetime64tz_dtype(result["timestamp"])
-    assert result["timestamp"].dt.tz.zone == "UTC"
+    assert str(result["timestamp"].dt.tz) in ("UTC", "utc", "Etc/UTC")
 
 
 def test_normalise_timestamps_missing_column() -> None:
@@ -218,7 +218,7 @@ def test_deduplicate_removes_duplicates() -> None:
             "value": [1.0, 1.5, 2.0],
         }
     )
-    result = deduplicate(df)
+    result = deduplicate(df, subset=["interval_start", "facility_id"])
     assert len(result) == 2
 
 
@@ -238,7 +238,7 @@ def test_ingest_facilities_success(mock_session: MockSession, facility_csv: str)
         mock_client = MagicMock()
         mock_client.get_csv.return_value = facility_csv
         mock_client_cls.return_value = mock_client
-        count = ingest_facilities(mock_session)
+        count = ingest_facilities(mock_session)  # type: ignore[arg-type]
         assert count == 3
         assert len(mock_session.added) == 3
 
@@ -249,7 +249,7 @@ def test_ingest_facilities_http_error(mock_session: MockSession) -> None:
         mock_client.get_csv.side_effect = httpx.HTTPError("Connection failed")
         mock_client.close = MagicMock()
         mock_client_cls.return_value = mock_client
-        count = ingest_facilities(mock_session)
+        count = ingest_facilities(mock_session)  # type: ignore[arg-type]
         assert count == 0
 
 
@@ -259,7 +259,7 @@ def test_ingest_facilities_empty_response(mock_session: MockSession) -> None:
         mock_client.get_csv.return_value = ""
         mock_client.close = MagicMock()
         mock_client_cls.return_value = mock_client
-        count = ingest_facilities(mock_session)
+        count = ingest_facilities(mock_session)  # type: ignore[arg-type]
         assert count == 0
 
 
@@ -275,7 +275,7 @@ def test_ingest_intervals_success(mock_session: MockSession, dispatch_csv: str) 
         mock_client.get_csv.return_value = dispatch_csv
         mock_client.close = MagicMock()
         mock_client_cls.return_value = mock_client
-        count = ingest_intervals(mock_session, date(2024, 3, 15), date(2024, 3, 15))
+        count = ingest_intervals(mock_session, date(2024, 3, 15), date(2024, 3, 15))  # type: ignore[arg-type]
         assert count > 0
 
 
@@ -285,7 +285,7 @@ def test_ingest_intervals_http_error(mock_session: MockSession) -> None:
         mock_client.get_csv.side_effect = httpx.HTTPError("Not found")
         mock_client.close = MagicMock()
         mock_client_cls.return_value = mock_client
-        count = ingest_intervals(mock_session, date(2024, 3, 15), date(2024, 3, 15))
+        count = ingest_intervals(mock_session, date(2024, 3, 15), date(2024, 3, 15))  # type: ignore[arg-type]
         assert count == 0
 
 
@@ -295,7 +295,7 @@ def test_ingest_prices_success(mock_session: MockSession, balancing_csv: str) ->
         mock_client.get_csv.return_value = balancing_csv
         mock_client.close = MagicMock()
         mock_client_cls.return_value = mock_client
-        count = ingest_prices(mock_session, date(2024, 3, 15), date(2024, 3, 15))
+        count = ingest_prices(mock_session, date(2024, 3, 15), date(2024, 3, 15))  # type: ignore[arg-type]
         assert count == 2
 
 
@@ -305,7 +305,7 @@ def test_ingest_prices_http_error(mock_session: MockSession) -> None:
         mock_client.get_csv.side_effect = httpx.HTTPError("Not found")
         mock_client.close = MagicMock()
         mock_client_cls.return_value = mock_client
-        count = ingest_prices(mock_session, date(2024, 3, 15), date(2024, 3, 15))
+        count = ingest_prices(mock_session, date(2024, 3, 15), date(2024, 3, 15))  # type: ignore[arg-type]
         assert count == 0
 
 
@@ -332,14 +332,18 @@ async def test_ingest_all_products_success(mock_session: MockSession) -> None:
         patch("app.pipeline.ingest.AsyncAEMOClient") as mock_client_cls,
         patch("app.pipeline.ingest.WholesalePriceConnector") as mock_connector_cls,
     ):
-        mock_client = MagicMock()
-        mock_client.__aenter__ = MagicMock(return_value=mock_client)
-        mock_client.__aexit__ = MagicMock(return_value=None)
+        from unittest.mock import AsyncMock
+
+        mock_client = AsyncMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_cls.return_value = mock_client
 
+        from unittest.mock import AsyncMock
+
         mock_connector = MagicMock()
-        mock_connector.fetch_date_range = MagicMock(return_value=mock_records)
+        mock_connector.fetch_date_range = AsyncMock(return_value=mock_records)
         mock_connector_cls.return_value = mock_connector
 
-        counts = await ingest_all_products(mock_session, date(2024, 3, 15), date(2024, 3, 15))
+        counts = await ingest_all_products(mock_session, date(2024, 3, 15), date(2024, 3, 15))  # type: ignore[arg-type]
         assert "ENERGY" in counts or len(counts) >= 0

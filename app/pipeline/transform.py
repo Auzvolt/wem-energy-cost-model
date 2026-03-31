@@ -83,7 +83,7 @@ def resample_to_5min(df: DataFrame) -> DataFrame:
     return resampled.reset_index()
 
 
-def detect_gaps(df: DataFrame, col: str, freq: str = "5min") -> DataFrame:
+def detect_gaps(df: DataFrame, col: str = "interval_start", freq: str = "5min") -> DataFrame:
     """Detect gaps in a time-series DataFrame.
 
     Args:

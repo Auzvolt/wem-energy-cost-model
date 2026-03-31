@@ -416,8 +416,7 @@ class Facility(Base):
 
     def __repr__(self) -> str:
         return (
-            f"<Facility id={self.id} facility_id={self.facility_id!r} "
-            f"name={self.facility_name!r}>"
+            f"<Facility id={self.id} facility_id={self.facility_id!r} name={self.facility_name!r}>"
         )
 
 
