@@ -27,3 +27,4 @@ warn_unused_ignores = true
 [tool.pytest.ini_options]
 addopts = "--ignore=app/main.py"
 testpaths = ["tests"]
+asyncio_mode = "auto"
