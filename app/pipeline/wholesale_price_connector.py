@@ -58,7 +58,7 @@ class WholesalePriceRecord:
 
     interval_start_utc: datetime
     price_aud_mwh: float
-    product: str        # "ENERGY" or one of FCESS_PRODUCTS
+    product: str  # "ENERGY" or one of FCESS_PRODUCTS
     source_url: str
 
 
@@ -138,9 +138,7 @@ def parse_balancing_csv(csv_text: str, source_url: str) -> list[WholesalePriceRe
 
     df.columns = [c.strip().upper() for c in df.columns]
 
-    price_col = _find_column(
-        df, ["MARKET_CLEARING_PRICE", "MCP", "BALANCING_PRICE", "PRICE"]
-    )
+    price_col = _find_column(df, ["MARKET_CLEARING_PRICE", "MCP", "BALANCING_PRICE", "PRICE"])
     ts_col = _find_column(
         df,
         [
@@ -196,9 +194,7 @@ def parse_fcess_csv(
 
     df.columns = [c.strip().upper() for c in df.columns]
 
-    price_col = _find_column(
-        df, ["MARKET_CLEARING_PRICE", "MCP", "CLEARING_PRICE", "PRICE"]
-    )
+    price_col = _find_column(df, ["MARKET_CLEARING_PRICE", "MCP", "CLEARING_PRICE", "PRICE"])
     ts_col = _find_column(
         df,
         ["DISPATCH_INTERVAL_START", "INTERVAL_START", "TRADING_DATE"],
@@ -277,7 +273,10 @@ class WholesalePriceConnector:
         dates = _date_range(start, end)
         log.info(
             "Fetching %d days of WEM prices (%s to %s, fcess=%s)",
-            len(dates), start, end, include_fcess,
+            len(dates),
+            start,
+            end,
+            include_fcess,
         )
 
         for trading_date in dates:
@@ -364,13 +363,9 @@ class WholesalePriceConnector:
             if exc.response.status_code == 404:
                 log.debug("No FCESS data for %s %s (404)", product, trading_date)
             else:
-                log.warning(
-                    "HTTP error fetching FCESS %s for %s: %s", product, trading_date, exc
-                )
+                log.warning("HTTP error fetching FCESS %s for %s: %s", product, trading_date, exc)
         except Exception as exc:
-            log.warning(
-                "Unexpected error fetching FCESS %s for %s: %s", product, trading_date, exc
-            )
+            log.warning("Unexpected error fetching FCESS %s for %s: %s", product, trading_date, exc)
         return []
 
     @staticmethod

@@ -74,7 +74,7 @@ def test_parse_balancing_csv_timestamps_utc() -> None:
     first_ts = records[0].interval_start_utc
     assert first_ts.tzinfo == UTC
     assert first_ts.hour == 16  # 00:00 AWST = 16:00 UTC
-    assert first_ts.day == 14   # previous UTC day
+    assert first_ts.day == 14  # previous UTC day
 
 
 def test_parse_balancing_csv_empty() -> None:
@@ -133,6 +133,7 @@ class _FakeAsyncClient:
         if url in self._map:
             return self._map[url]
         from httpx import HTTPStatusError, Request, Response
+
         req = Request("GET", url)
         resp = Response(404, request=req)
         raise HTTPStatusError(f"Not found: {url}", request=req, response=resp)
@@ -199,16 +200,13 @@ async def test_connector_incremental_no_new_data() -> None:
     """If last_fetched_date is yesterday, no data to fetch."""
     from datetime import date as date_cls
 
-
     today = date_cls.today()
     yesterday = today - __import__("datetime").timedelta(days=1)
 
     fake_client = _FakeAsyncClient({})
     connector = WholesalePriceConnector(client=fake_client)  # type: ignore[arg-type]
 
-    records = await connector.fetch_incremental(
-        last_fetched_date=yesterday, include_fcess=False
-    )
+    records = await connector.fetch_incremental(last_fetched_date=yesterday, include_fcess=False)
     assert records == []
 
 

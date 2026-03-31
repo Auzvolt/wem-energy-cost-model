@@ -86,9 +86,7 @@ class AEMOClient:
             "Use WholesalePriceConnector from app.pipeline.wholesale_price_connector"
         )
 
-    def fetch_fcess_prices(
-        self, start: date, end: date, product: str
-    ) -> list[dict[str, Any]]:
+    def fetch_fcess_prices(self, start: date, end: date, product: str) -> list[dict[str, Any]]:
         """Fetch FCESS product prices. Implemented by WholesalePriceConnector (#11)."""
         raise NotImplementedError(
             "Use WholesalePriceConnector from app.pipeline.wholesale_price_connector"
