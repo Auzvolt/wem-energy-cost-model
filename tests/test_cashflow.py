@@ -211,9 +211,20 @@ def test_build_cashflow_returns_dataframe() -> None:
     df = build_cashflow(AnnualRevenue(), AnnualCosts(), 0.0, cfg)
     assert isinstance(df, pd.DataFrame)
     required_cols = {
-        "year", "energy_revenue", "fcess_revenue", "capacity_revenue",
-        "network_savings", "total_revenue", "opex_fixed", "opex_variable",
-        "opex_total", "replacement_capex", "debt_service", "ebitda", "fcff",
-        "fcfe", "fcfe_discounted",
+        "year",
+        "energy_revenue",
+        "fcess_revenue",
+        "capacity_revenue",
+        "network_savings",
+        "total_revenue",
+        "opex_fixed",
+        "opex_variable",
+        "opex_total",
+        "replacement_capex",
+        "debt_service",
+        "ebitda",
+        "fcff",
+        "fcfe",
+        "fcfe_discounted",
     }
     assert required_cols.issubset(set(df.columns))
