@@ -51,9 +51,7 @@ class ProjectFinanceConfig(BaseModel):
     @model_validator(mode="after")
     def debt_term_le_project_life(self) -> ProjectFinanceConfig:
         if self.debt_fraction > 0 and self.debt_term_years > self.project_life_years:
-            raise ValueError(
-                "debt_term_years must be <= project_life_years when debt_fraction > 0"
-            )
+            raise ValueError("debt_term_years must be <= project_life_years when debt_fraction > 0")
         if self.debt_fraction > 0 and self.debt_term_years == 0:
             raise ValueError("debt_term_years must be > 0 when debt_fraction > 0")
         return self
@@ -78,10 +76,7 @@ class AnnualRevenue:
 
     def total(self) -> float:
         return (
-            self.energy_revenue
-            + self.fcess_revenue
-            + self.capacity_revenue
-            + self.network_savings
+            self.energy_revenue + self.fcess_revenue + self.capacity_revenue + self.network_savings
         )
 
 
@@ -216,7 +211,7 @@ def build_cashflow(
         # P&L aggregates
         ebitda = total_rev - opex_total
         fcff = ebitda - repl_capex  # Free Cash Flow to Firm (pre-financing)
-        fcfe = fcff - debt_svc       # Free Cash Flow to Equity (post-financing)
+        fcfe = fcff - debt_svc  # Free Cash Flow to Equity (post-financing)
 
         # Discounted equity cashflow (Year 1 discounted at t=1)
         fcfe_disc = fcfe / ((1 + config.discount_rate) ** year)

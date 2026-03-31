@@ -1,15 +1,17 @@
 """Tests for financial metrics module."""
+
 from __future__ import annotations
 
 import math
+
 import pytest
 from financial.metrics import (
-    npv,
-    irr,
-    lcoe,
-    simple_payback,
     discounted_payback,
     equity_multiple,
+    irr,
+    lcoe,
+    npv,
+    simple_payback,
 )
 
 

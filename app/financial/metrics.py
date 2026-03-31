@@ -2,6 +2,7 @@
 
 Uses numpy_financial (NOT numpy.irr/numpy.npv which are deprecated/removed).
 """
+
 from __future__ import annotations
 
 import numpy_financial as npf
@@ -35,6 +36,7 @@ def irr(cashflows: list[float]) -> float | None:
     result = npf.irr(cashflows)
     # numpy_financial returns nan if no solution found
     import math
+
     if result is None or math.isnan(result):
         return None
     return float(result)
