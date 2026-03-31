@@ -1,8 +1,8 @@
 """Add assumption_sets and assumption_entries tables.
 
-Revision ID: 20260401000002
-Revises: 20260331000000
-Create Date: 2026-04-01 00:00:02
+Revision ID: 20260401120000
+Revises: 20260401000001
+Create Date: 2026-04-01 12:00:00
 
 """
 
@@ -13,8 +13,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "20260401000002"
-down_revision = "20260331000000"
+revision = "20260401120000"
+down_revision = "20260401000001"
 branch_labels = None
 depends_on = None
 
@@ -41,7 +41,7 @@ def upgrade() -> None:
         sa.Column("author", sa.String(255), nullable=True),
         sa.Column(
             "created_at",
-            sa.DateTime(timezone=False),
+            sa.DateTime(timezone=True),
             nullable=False,
             server_default=sa.text("NOW()"),
         ),
@@ -72,12 +72,12 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("key", sa.String(255), nullable=False),
-        sa.Column("value", postgresql.JSONB, nullable=True),
+        sa.Column("value", postgresql.JSONB, nullable=False),
         sa.Column("unit", sa.String(64), nullable=True),
         sa.Column("source", sa.String(512), nullable=True),
         sa.Column(
             "created_at",
-            sa.DateTime(timezone=False),
+            sa.DateTime(timezone=True),
             nullable=False,
             server_default=sa.text("NOW()"),
         ),
@@ -107,9 +107,7 @@ def downgrade() -> None:
     op.drop_table("assumption_entries")
 
     op.drop_index("ix_assumption_sets_effective_from", "assumption_sets")
-    op.drop_constraint(
-        "fk_assumption_sets_superseded_by", "assumption_sets", type_="foreignkey"
-    )
+    op.drop_constraint("fk_assumption_sets_superseded_by", "assumption_sets", type_="foreignkey")
     op.drop_table("assumption_sets")
 
     ASSUMPTION_CATEGORY_ENUM.drop(op.get_bind(), checkfirst=True)
