@@ -195,9 +195,7 @@ class TestAddRcmConstraints:
         add_rcm_constraints(m, cfg, interval_duration_h=interval_h)
         intervals_per_year = 8760.0 / interval_h
         expected_total = n * (2_000_000.0 / intervals_per_year)
-        assert float(pyo.value(m.rcm_total_revenue)) == pytest.approx(
-            expected_total, rel=1e-6
-        )
+        assert float(pyo.value(m.rcm_total_revenue)) == pytest.approx(expected_total, rel=1e-6)
 
     def test_empty_T_does_not_raise(self) -> None:
         """Empty T set should log a warning and return without error."""

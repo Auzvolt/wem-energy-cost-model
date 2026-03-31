@@ -179,8 +179,7 @@ def add_rcm_constraints(
     )
 
     logger.debug(
-        "RCM constraints added: %d intervals, accredited_mw=%.1f, "
-        "annual_revenue=%.2f AUD",
+        "RCM constraints added: %d intervals, accredited_mw=%.1f, annual_revenue=%.2f AUD",
         n_intervals,
         config.accredited_mw,
         float(model.rcm_annual_revenue_aud),
