@@ -46,6 +46,10 @@ dev = [
     "mypy>=1.10",
     "types-requests",
     "aiosqlite>=0.19.0",
+    # Explicit CI install — numpy-financial is in main deps but listed here
+    # to guarantee it is present in the test environment regardless of any
+    # editable-install resolution quirks (fixes #90).
+    "numpy-financial>=1.0",
 ]
 export = [
     "kaleido>=0.2.1",
@@ -83,4 +87,5 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
     "integration: marks tests as integration tests (require external services or live DB)",
+    "validation: marks tests as GridCog benchmark validation tests",
 ]
