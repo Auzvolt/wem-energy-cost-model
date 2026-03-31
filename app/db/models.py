@@ -170,7 +170,7 @@ class LossFactor(Base):
     connection_point_name = Column(String(255), nullable=True)
     tlf = Column(Numeric(6, 4), nullable=False)
     dlf = Column(Numeric(6, 4), nullable=False)
-    factor_type = Column(
+    factor_type = Column(  # type: ignore[var-annotated]
         Enum(LossFactorType, name="loss_factor_type_enum"),
         nullable=False,
         default=LossFactorType.transmission,
@@ -268,7 +268,7 @@ class MeterReading(Base):
     kwh_import = Column(Numeric(12, 4), nullable=False)
     kwh_export = Column(Numeric(12, 4), nullable=True)
     kw_demand = Column(Numeric(10, 3), nullable=True)
-    data_quality = Column(
+    data_quality = Column(  # type: ignore[var-annotated]
         Enum(DataQuality, name="data_quality_enum"),
         nullable=False,
         default=DataQuality.actual,
@@ -310,7 +310,7 @@ class MarketPrice(Base):
     trading_date = Column(Date, nullable=False)
     interval_start = Column(DateTime(timezone=True), nullable=False)
     interval_end = Column(DateTime(timezone=True), nullable=False)
-    product = Column(
+    product = Column(  # type: ignore[var-annotated]
         Enum(MarketProduct, name="market_product_enum"),
         nullable=False,
     )
@@ -400,7 +400,7 @@ class Scenario(Base):
     name = Column(String(255), nullable=False)
     description = Column(String(1024), nullable=True)
     config = Column(JSON, nullable=False, default=dict)
-    status = Column(
+    status = Column(  # type: ignore[var-annotated]
         Enum(ScenarioStatus, name="scenario_status_enum"),
         nullable=False,
         default=ScenarioStatus.draft,
@@ -433,7 +433,7 @@ class PriceCurve(Base):
 
     id = Column(Integer, primary_key=True)
     curve_name = Column(String(255), nullable=False)
-    product = Column(
+    product = Column(  # type: ignore[var-annotated]
         Enum(MarketProduct, name="market_product_enum"),
         nullable=False,
     )
