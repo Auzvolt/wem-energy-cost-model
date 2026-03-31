@@ -9,6 +9,7 @@ Usage:
 Note: This script operates on anonymised synthetic fixtures only.
 No real customer data (NMI, name, address) is present in the fixtures.
 """
+
 from __future__ import annotations
 
 import csv
@@ -172,12 +173,12 @@ def validate_bill(tariff_code: str) -> dict[str, Any]:
 
 def print_validation_table(result: dict[str, Any]) -> None:
     bd = result["calculated_breakdown"]
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {result['tariff_code']} Bill Validation")
     print(f"  NOTE: {result['fixture_note']}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  {'Component':<35} {'Calculated':>12}")
-    print(f"  {'-'*50}")
+    print(f"  {'-' * 50}")
 
     if result["tariff_code"] == "RT2":
         print(f"  {'Peak kWh':<35} {bd['peak_kwh']:>12.1f}")
@@ -196,13 +197,13 @@ def print_validation_table(result: dict[str, Any]) -> None:
         print(f"  {'Daily supply charge ($)':<35} {bd['daily_charge']:>12.2f}")
         print(f"  {'Metering charge ($)':<35} {bd['metering_charge']:>12.2f}")
 
-    print(f"  {'-'*50}")
+    print(f"  {'-' * 50}")
     print(f"  {'Total exc GST (calculated) ($)':<35} {result['calculated_total_exc_gst']:>12.2f}")
     print(f"  {'Total exc GST (billed) ($)':<35} {result['billed_total_exc_gst']:>12.2f}")
     print(f"  {'Difference (%)':<35} {result['pct_difference']:>12.3f}%")
     status = "PASS ✓" if result["within_1pct"] else "FAIL ✗"
     print(f"  {'Within ±1% threshold:':<35} {status:>12}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 def main() -> int:
