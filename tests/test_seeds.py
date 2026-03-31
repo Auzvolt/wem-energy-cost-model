@@ -80,6 +80,12 @@ class TestSeedDataStructure:
         asset_types = {c["value"]["asset_type"] for c in REFERENCE_CAPEX_OPEX}
         assert asset_types == {"solar_pv", "bess_utility", "gas_ocgt"}
 
+    def test_capex_bess_has_chemistry_and_ref(self) -> None:
+        bess = next(c for c in REFERENCE_CAPEX_OPEX if c["key"] == "capex_bess_utility")
+        assert bess["value"]["chemistry"] == "LFP"
+        assert bess["value"]["degradation_curve_ref"] == "bess_degradation_LFP"
+        assert bess["value"]["installed_cost_dollars_per_kwh"] == 780
+
     def test_capex_values_are_positive(self) -> None:
         for item in REFERENCE_CAPEX_OPEX:
             val = item["value"]
@@ -97,19 +103,17 @@ class TestSeedWaDefaultsIdempotency:
 
     @pytest.mark.asyncio
     async def test_skips_if_already_seeded(self) -> None:
-        """If AssumptionSetORM returns an existing row, seed returns False."""
+        """If execute returns an existing row via fetchone, seed returns False."""
 
         # Mock the ORM import
-        mock_existing = MagicMock()  # truthy = existing row found
-
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = mock_existing
+        mock_result.fetchone.return_value = MagicMock()  # truthy = existing row found
 
         mock_session = AsyncMock()
         mock_session.execute.return_value = mock_result
 
-        # Patch the import so we don't need a real DB
-        mock_select = MagicMock(return_value=MagicMock())
+        # Patch text() so we don't need a real DB
+        mock_text = MagicMock(return_value=MagicMock())
         with (
             patch.dict(
                 "sys.modules",
@@ -120,7 +124,7 @@ class TestSeedWaDefaultsIdempotency:
                     )
                 },
             ),
-            patch("app.assumptions.seeds.select", mock_select),
+            patch("app.assumptions.seeds.text", mock_text),
         ):
             result = await seed_wa_defaults(mock_session)
 
@@ -133,7 +137,7 @@ class TestSeedWaDefaultsIdempotency:
         """If no existing set, seed creates and returns True."""
 
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = None  # no existing row
+        mock_result.fetchone.return_value = None  # no existing row
 
         mock_session = AsyncMock()
         mock_session.execute.return_value = mock_result
@@ -142,7 +146,7 @@ class TestSeedWaDefaultsIdempotency:
         mock_set_orm_class = MagicMock()
         mock_entry_orm_class = MagicMock()
 
-        mock_select = MagicMock(return_value=MagicMock())
+        mock_text = MagicMock(return_value=MagicMock())
         with (
             patch.dict(
                 "sys.modules",
@@ -153,7 +157,7 @@ class TestSeedWaDefaultsIdempotency:
                     )
                 },
             ),
-            patch("app.assumptions.seeds.select", mock_select),
+            patch("app.assumptions.seeds.text", mock_text),
         ):
             result = await seed_wa_defaults(mock_session)
 
