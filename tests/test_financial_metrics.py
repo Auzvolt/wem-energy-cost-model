@@ -5,7 +5,8 @@ from __future__ import annotations
 import math
 
 import pytest
-from financial.metrics import (
+
+from app.financial.metrics import (
     discounted_payback,
     equity_multiple,
     irr,
