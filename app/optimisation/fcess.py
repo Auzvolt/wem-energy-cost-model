@@ -61,12 +61,8 @@ class FcessConfig(BaseModel):
     )
     max_reg_raise_mw: float | None = Field(default=None, ge=0, description="MW cap for reg_raise")
     max_reg_lower_mw: float | None = Field(default=None, ge=0, description="MW cap for reg_lower")
-    max_cont_raise_mw: float | None = Field(
-        default=None, ge=0, description="MW cap for cont_raise"
-    )
-    max_cont_lower_mw: float | None = Field(
-        default=None, ge=0, description="MW cap for cont_lower"
-    )
+    max_cont_raise_mw: float | None = Field(default=None, ge=0, description="MW cap for cont_raise")
+    max_cont_lower_mw: float | None = Field(default=None, ge=0, description="MW cap for cont_lower")
     max_rocof_mw: float | None = Field(default=None, ge=0, description="MW cap for rocof")
 
     @model_validator(mode="after")
@@ -194,9 +190,7 @@ def add_fcess_constraints(
         )
         setattr(model, price_param_name, price_param)
 
-        revenue_expr = sum(
-            getattr(model, price_param_name)[t] * fcess_vars[product][t] for t in T
-        )
+        revenue_expr = sum(getattr(model, price_param_name)[t] * fcess_vars[product][t] for t in T)
         model.add_objective_term(revenue_expr)
         logger.debug("FCESS %s revenue term added (%d intervals)", product, n)
 
