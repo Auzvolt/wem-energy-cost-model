@@ -20,7 +20,7 @@ async def main() -> None:
         return
 
     try:
-        from db.session import AsyncSessionFactory  # type: ignore[import]
+        from db.session import AsyncSessionFactory
     except ImportError:
         print("WARNING: db.session not available — skipping seed.")
         return

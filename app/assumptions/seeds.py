@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Tariff schedules --------------------------------------------------------
 
-WA_TARIFF_SCHEDULES = [
+WA_TARIFF_SCHEDULES: list[dict[str, Any]] = [
     {
         "key": "RT2",
         "value": {
@@ -140,7 +141,7 @@ WA_TARIFF_SCHEDULES = [
 
 # BESS degradation curves -------------------------------------------------
 
-BESS_DEGRADATION_CURVES = [
+BESS_DEGRADATION_CURVES: list[dict[str, Any]] = [
     {
         "key": "bess_degradation_NMC",
         "value": {
@@ -169,7 +170,7 @@ BESS_DEGRADATION_CURVES = [
 
 # Solar yield profiles (monthly normalised capacity factors, 1 kWp basis) -----
 
-SOLAR_YIELD_PROFILES = [
+SOLAR_YIELD_PROFILES: list[dict[str, Any]] = [
     {
         "key": "solar_yield_perth_metro",
         "value": {
@@ -229,7 +230,7 @@ SOLAR_YIELD_PROFILES = [
 
 # Reference capex/opex ----------------------------------------------------
 
-REFERENCE_CAPEX_OPEX = [
+REFERENCE_CAPEX_OPEX: list[dict[str, Any]] = [
     {
         "key": "capex_solar_pv",
         "value": {
@@ -287,7 +288,7 @@ async def seed_wa_defaults(session: AsyncSession) -> bool:
         True if seeds were inserted, False if already present.
     """
     try:
-        from db.assumption_orm import AssumptionEntryORM, AssumptionSetORM  # type: ignore[import]
+        from db.assumption_orm import AssumptionEntryORM, AssumptionSetORM
     except ImportError:
         # ORM not yet wired — skip DB operations gracefully
         return False
