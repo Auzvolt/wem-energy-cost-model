@@ -11,6 +11,7 @@ license = { text = "MIT" }
 dependencies = [
     # Web / UI
     "streamlit>=1.33",
+    "streamlit-authenticator>=0.3",
     "plotly>=5.20",
     # Data
     "pandas>=2.2",
@@ -52,6 +53,10 @@ export = [
 solver = [
     "highspy>=1.7",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
 
 [tool.ruff]
 line-length = 100
