@@ -16,7 +16,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 # Allow running from repo root
 REPO_ROOT = Path(__file__).parents[2]
@@ -30,7 +30,7 @@ INTERVAL_DIR = FIXTURES_DIR / "interval_data"
 def load_bill_fixture(tariff_code: str) -> dict[str, Any]:
     path = BILLS_DIR / f"{tariff_code}_synthetic_bill_202507.json"
     with open(path) as f:
-        return json.load(f)
+        return cast(dict[str, Any], json.load(f))
 
 
 def load_interval_data(tariff_code: str) -> list[dict[str, Any]]:
