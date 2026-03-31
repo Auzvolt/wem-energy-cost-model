@@ -11,9 +11,11 @@ dependencies = [
     # Web / UI
     "streamlit>=1.33",
     "plotly>=5.20",
+    "kaleido>=0.2.1",   # required for plotly static PNG/SVG export (#42)
     # Data
     "pandas>=2.2",
     "numpy>=1.26",
+    "numpy-financial>=1.0",  # NPV, IRR — numpy.irr/npv removed in numpy 2.0 (#34)
     "httpx>=0.27",
     "aiohttp>=3.9",
     # Database
@@ -26,6 +28,9 @@ dependencies = [
     "highspy>=1.7",   # HiGHS solver (open-source, no extra install needed)
     # Financial
     "scipy>=1.13",
+    # Reporting
+    "reportlab>=4.0",  # pure-Python PDF generation (#43) — avoids libpango dep of weasyprint
+    "openpyxl>=3.1",   # Excel export (#43)
     # Config
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
