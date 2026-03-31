@@ -31,6 +31,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from typing import Any, cast
 
 import streamlit as st
 
@@ -43,7 +44,7 @@ _COOKIE_KEY = "wem_auth_signature_key_change_me"
 _COOKIE_EXPIRY_DAYS = 1
 
 
-def _load_credentials() -> dict:  # type: ignore[type-arg]
+def _load_credentials() -> dict[str, Any]:
     """Load credential config from env var or Streamlit secrets."""
     raw = os.getenv("AUTH_CREDENTIALS_JSON", "")
     if raw:
@@ -55,7 +56,7 @@ def _load_credentials() -> dict:  # type: ignore[type-arg]
 
     # Try Streamlit secrets (Streamlit Cloud)
     try:
-        return dict(st.secrets["credentials"])
+        return cast(dict[str, Any], dict(st.secrets["credentials"]))
     except (KeyError, FileNotFoundError):
         pass
 
