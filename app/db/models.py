@@ -26,8 +26,9 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    text,
 )
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -455,3 +456,32 @@ class PriceCurve(Base):
             f"<PriceCurve id={self.id} curve={self.curve_name!r} "
             f"product={self.product.value} start={self.interval_start}>"
         )
+
+
+class Asset(Base):
+    """Registered energy asset (generator, battery, demand response).
+
+    The ``config`` column stores the full Pydantic model as JSONB.
+    """
+
+    __tablename__ = "assets"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+        nullable=False,
+    )
+    asset_type = Column(String(50), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    config = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<Asset id={self.id} type={self.asset_type!r} name={self.name!r}>"
