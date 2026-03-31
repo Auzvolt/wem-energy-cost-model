@@ -10,10 +10,14 @@ requires-python = ">=3.11"
 dependencies = [
     # Web / UI
     "streamlit>=1.33",
+    "streamlit-authenticator>=0.3",
     "plotly>=5.20",
+    "kaleido>=0.2",  # Plotly static export (PNG/SVG)
     # Data
     "pandas>=2.2",
     "numpy>=1.26",
+    "numpy-financial>=1.0",  # npf.irr, npf.npv — numpy.irr is removed
+    "openpyxl>=3.1",
     "httpx>=0.27",
     "aiohttp>=3.9",
     # Database
@@ -23,9 +27,12 @@ dependencies = [
     "sqlalchemy>=2.0",
     # Optimisation
     "pyomo>=6.7",
-    "highspy>=1.7",   # HiGHS solver (open-source, no extra install needed)
+    "highspy>=1.7",
     # Financial
     "scipy>=1.13",
+    # Export (pure-Python PDF — no system libs required)
+    "reportlab>=4.0",
+    "fpdf2>=2.7",
     # Config
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
@@ -40,6 +47,8 @@ dev = [
     "ruff>=0.4",
     "mypy>=1.10",
     "types-requests",
+    "aiosqlite>=0.20",
+    "pre-commit>=3.7",
 ]
 
 [tool.ruff]
@@ -58,4 +67,3 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=. --cov-report=term-missing --cov-omit=tests/*"
