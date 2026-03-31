@@ -49,7 +49,7 @@ def _load_credentials() -> dict[str, Any]:
     raw = os.getenv("AUTH_CREDENTIALS_JSON", "")
     if raw:
         try:
-            return json.loads(raw)
+            return cast(dict[str, Any], json.loads(raw))
         except json.JSONDecodeError:
             logger.error("AUTH_CREDENTIALS_JSON is not valid JSON")
             return {"usernames": {}}
