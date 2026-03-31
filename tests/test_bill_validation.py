@@ -5,8 +5,6 @@ to ensure they run in CI.
 """
 from __future__ import annotations
 
-import pytest
-
 from tests.validation.tariff_bill_validation import validate_bill
 
 
