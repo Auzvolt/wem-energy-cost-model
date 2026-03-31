@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
 
 import pytest
 
@@ -15,7 +14,6 @@ from app.assumptions.models import (
     SolarYieldProfile,
     TariffScheduleAssumption,
 )
-
 
 # ---------------------------------------------------------------------------
 # AssumptionSet model tests

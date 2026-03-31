@@ -7,17 +7,16 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
 
-class AssumptionCategory(str, Enum):
+class AssumptionCategory(StrEnum):
     TARIFF = "tariff"
     CAPEX = "capex"
     OPEX = "opex"
