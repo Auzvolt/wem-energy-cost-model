@@ -1,0 +1,4 @@
+# Generic single-database configuration.
+
+# Path to migration scripts
+[DEFAULT]

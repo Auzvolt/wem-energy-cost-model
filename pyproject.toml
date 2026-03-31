@@ -23,7 +23,7 @@ dependencies = [
     "sqlalchemy>=2.0",
     # Optimisation
     "pyomo>=6.7",
-    "highspy>=1.7",   # HiGHS solver (open-source, no extra install needed)
+    "highspy>=1.7",
     # Financial
     "scipy>=1.13",
     # Config
@@ -40,6 +40,7 @@ dev = [
     "ruff>=0.4",
     "mypy>=1.10",
     "types-requests",
+    "aiosqlite>=0.20",
 ]
 
 [tool.ruff]
@@ -58,4 +59,3 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=. --cov-report=term-missing --cov-omit=tests/*"
