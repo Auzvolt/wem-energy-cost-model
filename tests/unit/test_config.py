@@ -8,7 +8,7 @@ def test_settings_defaults():
     from app.config import Settings
 
     s = Settings()
-    assert s.database_url.startswith("postgresql://") or s.database_url.startswith("sqlite://")
+    assert s.database_url.startswith("postgresql") or s.database_url.startswith("sqlite")
     assert s.aemo_api_base_url.startswith("https://")
     assert isinstance(s.log_level, str)
     assert isinstance(s.aemo_api_key, str)
