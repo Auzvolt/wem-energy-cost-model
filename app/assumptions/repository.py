@@ -36,7 +36,7 @@ async def get_active_set(session: AsyncSession, as_of_date: date) -> AssumptionS
         The active AssumptionSet, or None if no sets exist.
     """
     # Import here to avoid circular imports during early scaffold phase
-    from db.assumption_orm import AssumptionEntryORM, AssumptionSetORM  # type: ignore[import]
+    from db.assumption_orm import AssumptionEntryORM, AssumptionSetORM
 
     stmt = (
         select(AssumptionSetORM)
@@ -96,7 +96,7 @@ async def create_assumption_set(
     Returns:
         The newly created AssumptionSet (not yet flushed to DB).
     """
-    from db.assumption_orm import AssumptionSetORM  # type: ignore[import]
+    from db.assumption_orm import AssumptionSetORM
 
     new_id = uuid.uuid4()
     now = datetime.utcnow()
@@ -157,7 +157,7 @@ async def add_entry(
     Returns:
         The newly created AssumptionEntry.
     """
-    from db.assumption_orm import AssumptionEntryORM  # type: ignore[import]
+    from db.assumption_orm import AssumptionEntryORM
 
     entry_id = uuid.uuid4()
     now = datetime.utcnow()
@@ -193,7 +193,7 @@ async def get_entries_by_category(
     category: AssumptionCategory,
 ) -> list[AssumptionEntry]:
     """Retrieve all entries of a given category from an assumption set."""
-    from db.assumption_orm import AssumptionEntryORM  # type: ignore[import]
+    from db.assumption_orm import AssumptionEntryORM
 
     stmt = select(AssumptionEntryORM).where(
         AssumptionEntryORM.set_id == set_id,
