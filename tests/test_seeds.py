@@ -109,14 +109,18 @@ class TestSeedWaDefaultsIdempotency:
         mock_session.execute.return_value = mock_result
 
         # Patch the import so we don't need a real DB
-        with patch.dict(
-            "sys.modules",
-            {
-                "db.assumption_orm": MagicMock(
-                    AssumptionSetORM=MagicMock(),
-                    AssumptionEntryORM=MagicMock(),
-                )
-            },
+        mock_select = MagicMock(return_value=MagicMock())
+        with (
+            patch.dict(
+                "sys.modules",
+                {
+                    "db.assumption_orm": MagicMock(
+                        AssumptionSetORM=MagicMock(),
+                        AssumptionEntryORM=MagicMock(),
+                    )
+                },
+            ),
+            patch("app.assumptions.seeds.select", mock_select),
         ):
             result = await seed_wa_defaults(mock_session)
 
@@ -138,14 +142,18 @@ class TestSeedWaDefaultsIdempotency:
         mock_set_orm_class = MagicMock()
         mock_entry_orm_class = MagicMock()
 
-        with patch.dict(
-            "sys.modules",
-            {
-                "db.assumption_orm": MagicMock(
-                    AssumptionSetORM=mock_set_orm_class,
-                    AssumptionEntryORM=mock_entry_orm_class,
-                )
-            },
+        mock_select = MagicMock(return_value=MagicMock())
+        with (
+            patch.dict(
+                "sys.modules",
+                {
+                    "db.assumption_orm": MagicMock(
+                        AssumptionSetORM=mock_set_orm_class,
+                        AssumptionEntryORM=mock_entry_orm_class,
+                    )
+                },
+            ),
+            patch("app.assumptions.seeds.select", mock_select),
         ):
             result = await seed_wa_defaults(mock_session)
 
