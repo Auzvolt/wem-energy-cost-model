@@ -267,6 +267,8 @@ _skip_async = pytest.mark.skipif(
 
 
 if _aiosqlite_available:
+    from collections.abc import AsyncGenerator
+
     import pytest_asyncio
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -280,7 +282,7 @@ if _aiosqlite_available:
     from app.db.models import Base
 
     @pytest_asyncio.fixture
-    async def async_session() -> AsyncSession:  # type: ignore[misc]
+    async def async_session() -> AsyncGenerator[AsyncSession, None]:
         """In-memory async SQLite session with all ORM tables created."""
         engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
         async with engine.begin() as conn:
