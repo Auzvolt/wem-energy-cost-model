@@ -28,7 +28,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -170,7 +170,7 @@ class LossFactor(Base):
     connection_point_name = Column(String(255), nullable=True)
     tlf = Column(Numeric(6, 4), nullable=False)
     dlf = Column(Numeric(6, 4), nullable=False)
-    factor_type = Column(  # type: ignore[var-annotated]
+    factor_type: Mapped[LossFactorType] = mapped_column(
         Enum(LossFactorType, name="loss_factor_type_enum"),
         nullable=False,
         default=LossFactorType.transmission,
@@ -268,7 +268,7 @@ class MeterReading(Base):
     kwh_import = Column(Numeric(12, 4), nullable=False)
     kwh_export = Column(Numeric(12, 4), nullable=True)
     kw_demand = Column(Numeric(10, 3), nullable=True)
-    data_quality = Column(  # type: ignore[var-annotated]
+    data_quality: Mapped[DataQuality] = mapped_column(
         Enum(DataQuality, name="data_quality_enum"),
         nullable=False,
         default=DataQuality.actual,
@@ -310,7 +310,7 @@ class MarketPrice(Base):
     trading_date = Column(Date, nullable=False)
     interval_start = Column(DateTime(timezone=True), nullable=False)
     interval_end = Column(DateTime(timezone=True), nullable=False)
-    product = Column(  # type: ignore[var-annotated]
+    product: Mapped[MarketProduct] = mapped_column(
         Enum(MarketProduct, name="market_product_enum"),
         nullable=False,
     )
@@ -400,7 +400,7 @@ class Scenario(Base):
     name = Column(String(255), nullable=False)
     description = Column(String(1024), nullable=True)
     config = Column(JSON, nullable=False, default=dict)
-    status = Column(  # type: ignore[var-annotated]
+    status: Mapped[ScenarioStatus] = mapped_column(
         Enum(ScenarioStatus, name="scenario_status_enum"),
         nullable=False,
         default=ScenarioStatus.draft,
@@ -433,7 +433,7 @@ class PriceCurve(Base):
 
     id = Column(Integer, primary_key=True)
     curve_name = Column(String(255), nullable=False)
-    product = Column(  # type: ignore[var-annotated]
+    product: Mapped[MarketProduct] = mapped_column(
         Enum(MarketProduct, name="market_product_enum"),
         nullable=False,
     )
