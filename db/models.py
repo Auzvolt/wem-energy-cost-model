@@ -37,13 +37,9 @@ class Facility(Base):
     participant_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     technology_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
     capacity_mw: Mapped[float | None] = mapped_column(Float, nullable=True)
-    registered_from: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    registered_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    intervals: Mapped[list[Interval]] = relationship(
-        "Interval", back_populates="facility"
-    )
+    intervals: Mapped[list[Interval]] = relationship("Interval", back_populates="facility")
 
 
 class Interval(Base):
@@ -57,9 +53,7 @@ class Interval(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     interval_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    facility_code: Mapped[str] = mapped_column(
-        String(64), ForeignKey("facilities.facility_code")
-    )
+    facility_code: Mapped[str] = mapped_column(String(64), ForeignKey("facilities.facility_code"))
     actual_mw: Mapped[float] = mapped_column(Float)
     trading_price_aud_mwh: Mapped[float | None] = mapped_column(Float, nullable=True)
 
@@ -151,3 +145,23 @@ class ScenarioResult(Base):
 
     scenario: Mapped[Scenario] = relationship("Scenario", back_populates="results")
     asset: Mapped[Asset] = relationship("Asset", back_populates="scenario_results")
+
+
+class IntervalData(Base):
+    """Imported interval meter data for a site (NMI)."""
+
+    __tablename__ = "interval_data"
+    __table_args__ = (
+        UniqueConstraint("site_id", "interval_start", name="uq_interval_data_site_time"),
+        Index("ix_interval_data_start", "interval_start"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    site_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    nmi: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    interval_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    energy_kwh: Mapped[float] = mapped_column(Float, nullable=False)
+    quality_flag: Mapped[str] = mapped_column(String(8), default="A")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("CURRENT_TIMESTAMP")
+    )

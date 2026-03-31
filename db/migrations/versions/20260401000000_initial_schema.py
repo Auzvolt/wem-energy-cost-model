@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-04-01 00:00:00.000000
 
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -58,9 +59,7 @@ def upgrade() -> None:
         sa.Column("total_demand_mw", sa.Float(), nullable=True),
         sa.UniqueConstraint("interval_start", "region", name="uq_price_interval"),
     )
-    op.create_index(
-        "ix_price_intervals_interval_start", "price_intervals", ["interval_start"]
-    )
+    op.create_index("ix_price_intervals_interval_start", "price_intervals", ["interval_start"])
 
     # assets
     op.create_table(
@@ -103,9 +102,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("interval_start", sa.DateTime(timezone=True), nullable=False),
-        sa.Column(
-            "asset_id", sa.String(36), sa.ForeignKey("assets.id"), nullable=False
-        ),
+        sa.Column("asset_id", sa.String(36), sa.ForeignKey("assets.id"), nullable=False),
         sa.Column("dispatch_kw", sa.Float(), nullable=False),
         sa.Column("revenue_aud", sa.Float(), nullable=False),
     )

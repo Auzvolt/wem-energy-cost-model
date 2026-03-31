@@ -11,9 +11,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-DATABASE_URL: str = os.getenv(
-    "DATABASE_URL", "sqlite+aiosqlite:///./dev.db"
-)
+DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./dev.db")
 
 # For PostgreSQL the URL must use the asyncpg or psycopg async driver scheme.
 # e.g. "postgresql+psycopg://user:pass@host/dbname"

@@ -19,9 +19,7 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-DATABASE_URL: str = os.environ.get(
-    "DATABASE_URL", "sqlite+aiosqlite:///./dev.db"
-)
+DATABASE_URL: str = os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///./dev.db")
 
 
 def run_migrations_offline() -> None:
