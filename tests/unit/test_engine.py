@@ -25,6 +25,7 @@ from app.optimisation.engine import (
 
 try:
     import pyomo.environ as pyo  # noqa: F401
+
     PYOMO_AVAILABLE = True
 except ImportError:
     PYOMO_AVAILABLE = False
@@ -48,12 +49,14 @@ class TestModelConfig:
 class TestWEMModelBuild:
     def _make_model(self, n: int = 6) -> WEMModel:
         from datetime import datetime
+
         intervals = [datetime(2024, 1, 1, 0, i * 5) for i in range(n)]
         cfg = ModelConfig(solver=SolverConfig(solver_name="glpk"))
         return WEMModel(intervals=intervals, config=cfg)
 
     def test_build_returns_concrete_model(self) -> None:
         import pyomo.environ as pyo
+
         m = self._make_model()
         concrete = m.build()
         assert isinstance(concrete, pyo.ConcreteModel)
@@ -65,6 +68,7 @@ class TestWEMModelBuild:
 
     def test_interval_duration_param(self) -> None:
         import pyomo.environ as pyo
+
         m = self._make_model(n=6)
         m.build()
         assert abs(float(pyo.value(m.model.interval_duration_h)) - 5 / 60) < 1e-9
@@ -82,6 +86,7 @@ class TestWEMModelBuild:
 
     def test_extract_before_build_raises(self) -> None:
         import pyomo.environ as pyo
+
         m = self._make_model()
         dummy_var = pyo.Var()
         with pytest.raises(RuntimeError, match="build()"):
@@ -89,6 +94,7 @@ class TestWEMModelBuild:
 
     def test_objective_attached(self) -> None:
         import pyomo.environ as pyo
+
         m = self._make_model()
         m.build()
         assert hasattr(m.model, "objective")
@@ -96,6 +102,7 @@ class TestWEMModelBuild:
 
     def test_add_objective_term_accumulates(self) -> None:
         import pyomo.environ as pyo
+
         m = self._make_model(n=4)
         # Add a constant term before build
         m.add_objective_term(100.0)

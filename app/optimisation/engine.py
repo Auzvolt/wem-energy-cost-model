@@ -254,10 +254,7 @@ def build_trivial_model(
     The objective is set to a constant (0.0) so any solver that supports LP
     will return 'optimal' immediately.  Used to verify environment setup.
     """
-    intervals = [
-        datetime(2024, 1, 1, 0, i * interval_minutes)
-        for i in range(n_intervals)
-    ]
+    intervals = [datetime(2024, 1, 1, 0, i * interval_minutes) for i in range(n_intervals)]
     cfg = config or ModelConfig(
         interval_minutes=interval_minutes,
         objective_sense=ObjectiveSense.maximise_revenue,
