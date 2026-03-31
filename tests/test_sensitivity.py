@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from financial.sensitivity import (
+
+from app.financial.sensitivity import (
     DEFAULT_SENSITIVITY_PARAMS,
     SensitivityParam,
     SensitivityResult,
