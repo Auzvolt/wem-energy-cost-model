@@ -31,6 +31,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import warnings
 from typing import Any, cast
 
 import streamlit as st
@@ -40,7 +41,15 @@ from app.ui.session import USER_ROLE, USERNAME
 logger = logging.getLogger(__name__)
 
 _COOKIE_NAME = "wem_auth"
-_COOKIE_KEY = "wem_auth_signature_key_change_me"
+_PLACEHOLDER_COOKIE_KEY = "wem_auth_signature_key_change_me"
+_COOKIE_KEY = os.environ.get("AUTH_COOKIE_KEY", _PLACEHOLDER_COOKIE_KEY)
+if _COOKIE_KEY == _PLACEHOLDER_COOKIE_KEY:
+    warnings.warn(
+        "AUTH_COOKIE_KEY is using the default placeholder value. "
+        "Set a strong random secret in the AUTH_COOKIE_KEY environment variable "
+        "before deploying to production.",
+        stacklevel=2,
+    )
 _COOKIE_EXPIRY_DAYS = 1
 
 
