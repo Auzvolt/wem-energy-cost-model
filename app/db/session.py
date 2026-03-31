@@ -13,7 +13,8 @@ engine = create_engine(
     echo=config.LOG_LEVEL == "DEBUG",
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# SQLAlchemy 2.x-compatible: pass engine as first positional argument, not via bind=
+SessionLocal = sessionmaker(engine, autocommit=False, autoflush=False)
 
 
 def get_session() -> Generator[Session, None, None]:
