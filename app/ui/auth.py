@@ -34,7 +34,7 @@ import os
 
 import streamlit as st
 
-from app.ui.session import USERNAME, USER_ROLE
+from app.ui.session import USER_ROLE, USERNAME
 
 logger = logging.getLogger(__name__)
 

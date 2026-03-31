@@ -14,4 +14,7 @@ if role != "admin":
     st.stop()
 
 st.title("⚙️ Assumptions")
-st.info("Assumption library management coming soon. Admins can edit tariff schedules, escalation rates, technical parameters, and price forecasts here.")
+st.info(
+    "Assumption library management coming soon. Admins can edit tariff schedules, "
+    "escalation rates, technical parameters, and price forecasts here."
+)
