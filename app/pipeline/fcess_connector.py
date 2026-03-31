@@ -155,13 +155,13 @@ def _row_to_record(row: dict[str, Any], product: str, source_url: str) -> FcessP
     """
     _AWST_OFFSET = 8 * 3600  # seconds
 
-    # Timestamp — use explicit None checks so falsy values (e.g. "0") are preserved
-    ts_raw = None
-    for _ts_key in ("DISPATCH_INTERVAL_START", "INTERVAL_START", "TRADING_DATE", "interval_start"):
-        _v = row.get(_ts_key)
-        if _v is not None:
-            ts_raw = _v
-            break
+    # Timestamp
+    ts_raw = (
+        row.get("DISPATCH_INTERVAL_START")
+        or row.get("INTERVAL_START")
+        or row.get("TRADING_DATE")
+        or row.get("interval_start")
+    )
     if ts_raw is None:
         return None
 
@@ -185,13 +185,9 @@ def _row_to_record(row: dict[str, Any], product: str, source_url: str) -> FcessP
         log.debug("Could not parse FCESS timestamp: %r", ts_raw)
         return None
 
-    # Price — use explicit None checks so 0.0 and other falsy numeric values are preserved
-    price_raw = None
-    for _p_key in ("MARKET_CLEARING_PRICE", "MCP", "CLEARING_PRICE", "PRICE", "price_aud_mwh"):
-        _v = row.get(_p_key)
-        if _v is not None:
-            price_raw = _v
-            break
+    # Price — use explicit None checks to preserve 0.0 values
+    _price_keys = ("MARKET_CLEARING_PRICE", "MCP", "CLEARING_PRICE", "PRICE", "price_aud_mwh")
+    price_raw = next((row[k] for k in _price_keys if k in row and row[k] is not None), None)
     try:
         price = float(price_raw)  # type: ignore[arg-type]
     except (TypeError, ValueError):
@@ -241,12 +237,11 @@ def fetch_fcess_prices(
     latest_sql = text("SELECT MAX(interval_start_utc) FROM fcess_prices WHERE product = :product")
     row = db.execute(latest_sql, {"product": product}).fetchone()
     if row and row[0] is not None:
-        # SQLite returns datetime columns as strings; PostgreSQL returns datetime objects
         _raw = row[0]
         if isinstance(_raw, str):
-            latest_stored: datetime = datetime.fromisoformat(_raw.replace("Z", "+00:00"))
-        else:
-            latest_stored = _raw
+            # SQLite returns datetime columns as strings; parse back to datetime
+            _raw = datetime.fromisoformat(_raw.replace("Z", "+00:00"))
+        latest_stored: datetime = _raw
         if not latest_stored.tzinfo:
             latest_stored = latest_stored.replace(tzinfo=UTC)
         incremental_from = latest_stored + timedelta(minutes=5)
