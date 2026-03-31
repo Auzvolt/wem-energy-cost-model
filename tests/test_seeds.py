@@ -1,9 +1,7 @@
 """Tests for WA default assumption seeds."""
+
 from __future__ import annotations
 
-import uuid
-from datetime import date
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -54,7 +52,10 @@ class TestSeedDataStructure:
     def test_lfp_lower_fade_than_nmc(self) -> None:
         nmc = next(c for c in BESS_DEGRADATION_CURVES if c["value"]["chemistry"] == "NMC")
         lfp = next(c for c in BESS_DEGRADATION_CURVES if c["value"]["chemistry"] == "LFP")
-        assert lfp["value"]["capacity_fade_pct_per_cycle"] < nmc["value"]["capacity_fade_pct_per_cycle"]
+        assert (
+            lfp["value"]["capacity_fade_pct_per_cycle"]
+            < nmc["value"]["capacity_fade_pct_per_cycle"]
+        )
 
     def test_two_solar_profiles(self) -> None:
         assert len(SOLAR_YIELD_PROFILES) == 2

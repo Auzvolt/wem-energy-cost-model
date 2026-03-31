@@ -12,6 +12,7 @@ Usage:
 The function is idempotent — calling it multiple times will not create
 duplicate assumption sets.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -19,7 +20,6 @@ from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 
 # ---------------------------------------------------------------------------
 # Default assumption data
@@ -176,7 +176,7 @@ SOLAR_YIELD_PROFILES = [
             "location": "Perth Metro, WA",
             "tracking": "fixed",
             "tilt_deg": 20,
-            "azimuth_deg": 0,   # 0 = North (southern hemisphere)
+            "azimuth_deg": 0,  # 0 = North (southern hemisphere)
             # Synthetic representative monthly CFs, Jan-Dec
             # Source: long-term average derived from BoM/PVGIS data for 31.95°S, 115.86°E
             "monthly_cf": [
@@ -274,6 +274,7 @@ REFERENCE_CAPEX_OPEX = [
 # ---------------------------------------------------------------------------
 # Seed function
 # ---------------------------------------------------------------------------
+
 
 async def seed_wa_defaults(session: AsyncSession) -> bool:
     """Idempotently seed WA default assumptions.
