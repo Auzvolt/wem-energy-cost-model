@@ -1,0 +1,21 @@
+streamlit
+pyomo
+pandas
+psycopg2-binary
+sqlalchemy
+alembic
+requests
+openpyxl
+reportlab
+python-dotenv
+plotly
+streamlit-authenticator
+numpy
+scipy
+
+# Dev / test
+pytest
+pytest-cov
+ruff
+mypy
+pre-commit

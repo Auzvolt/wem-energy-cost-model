@@ -1,0 +1,23 @@
+[project]
+name = "wem-energy-cost-model"
+version = "0.1.0"
+description = "WEM Energy Cost Modelling Tool — AEMO WA data pipeline, Pyomo optimisation, Streamlit app"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
+
+[tool.ruff.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+disallow_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
