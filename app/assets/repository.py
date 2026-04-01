@@ -55,14 +55,13 @@ async def create_asset(session: AsyncSession, asset: AnyAsset) -> uuid.UUID:
     """Persist a new asset and return its generated UUID."""
     row = _pydantic_to_orm(asset)
     session.add(row)
-    await session.flush()  # populate server-generated PK
     await session.commit()
-    return row.id  # type: ignore[return-value]
+    return uuid.UUID(str(row.id))
 
 
 async def get_asset(session: AsyncSession, asset_id: uuid.UUID) -> AnyAsset | None:
     """Return the asset with the given ID, or None if not found."""
-    result = await session.execute(select(Asset).where(Asset.id == asset_id))
+    result = await session.execute(select(Asset).where(Asset.id == str(asset_id)))
     row = result.scalar_one_or_none()
     if row is None:
         return None
@@ -91,7 +90,7 @@ async def update_asset(
 
     Returns True if the record was found and updated, False otherwise.
     """
-    result = await session.execute(select(Asset).where(Asset.id == asset_id))
+    result = await session.execute(select(Asset).where(Asset.id == str(asset_id)))
     row = result.scalar_one_or_none()
     if row is None:
         return False
@@ -105,7 +104,7 @@ async def delete_asset(session: AsyncSession, asset_id: uuid.UUID) -> bool:
 
     Returns True if the record was found and deleted, False otherwise.
     """
-    result = await session.execute(select(Asset).where(Asset.id == asset_id))
+    result = await session.execute(select(Asset).where(Asset.id == str(asset_id)))
     row = result.scalar_one_or_none()
     if row is None:
         return False

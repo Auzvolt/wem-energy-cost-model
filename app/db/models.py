@@ -12,6 +12,7 @@ Table hierarchy:
 from __future__ import annotations
 
 import enum
+import uuid
 
 from sqlalchemy import (
     Column,
@@ -26,9 +27,8 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
-    text,
 )
-from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -557,9 +557,9 @@ class Asset(Base):
     __tablename__ = "assets"
 
     id = Column(
-        UUID(as_uuid=True),
+        String(36),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=lambda: str(uuid.uuid4()),
         nullable=False,
     )
     asset_type = Column(String(50), nullable=False, index=True)
