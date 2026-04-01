@@ -51,11 +51,7 @@ class TestUncertaintyConfig:
 
     def test_fcess_rocof_nonzero_mean_raises(self) -> None:
         with pytest.raises(ValidationError, match="FCESS_ROCOF mean must be 0.0"):
-            UncertaintyConfig(
-                distributions={
-                    "FCESS_ROCOF": NormalDistribution(mean=5.0, std=1.0)
-                }
-            )
+            UncertaintyConfig(distributions={"FCESS_ROCOF": NormalDistribution(mean=5.0, std=1.0)})
 
     def test_fcess_rocof_zero_mean_valid(self) -> None:
         cfg = UncertaintyConfig(

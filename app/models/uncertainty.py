@@ -151,9 +151,7 @@ class UncertaintyConfig(BaseModel):
 
     @field_validator("distributions")
     @classmethod
-    def _check_product_keys(
-        cls, v: dict[str, AnyDistribution]
-    ) -> dict[str, AnyDistribution]:
+    def _check_product_keys(cls, v: dict[str, AnyDistribution]) -> dict[str, AnyDistribution]:
         unknown = set(v.keys()) - WEM_PRODUCTS
         if unknown:
             raise ValueError(f"Unknown product codes: {unknown!r}. Valid: {WEM_PRODUCTS!r}")
