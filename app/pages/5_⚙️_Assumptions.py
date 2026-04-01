@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from app.ui.assumptions import render_assumptions_page
 from app.ui.session import USER_ROLE
 
 st.set_page_config(page_title="Assumptions", layout="wide")
@@ -13,9 +14,8 @@ if role != "admin":
     st.error("🔒 Access denied. This page requires admin privileges.")
     st.stop()
 
-st.title("⚙️ Assumptions")
-st.info(
-    "Assumption library management coming soon. "
-    "Admins can edit tariff schedules, escalation rates, technical parameters, "
-    "and price forecasts here."
-)
+# Persist the loaded assumption set across reruns via session state
+assumption_set = st.session_state.get("assumption_set", None)
+updated = render_assumptions_page(assumption_set)
+if updated is not assumption_set:
+    st.session_state["assumption_set"] = updated
