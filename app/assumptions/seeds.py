@@ -19,7 +19,7 @@ import uuid
 from datetime import date
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ---------------------------------------------------------------------------
@@ -146,25 +146,25 @@ BESS_DEGRADATION_CURVES: list[dict[str, Any]] = [
         "key": "bess_degradation_NMC",
         "value": {
             "chemistry": "NMC",
-            "capacity_fade_pct_per_cycle": 0.03,
+            "capacity_fade_pct_per_cycle": 0.02,
             "calendar_degradation_pct_per_year": 2.0,
             "eol_capacity_pct": 80.0,
-            "source_note": "Typical NMC chemistry values from NREL / Argonne ANL literature",
+            "source_note": "% capacity loss per full equivalent cycle (FEC); NREL 2023 Grid-Scale Battery Storage Cost Report",
         },
         "unit": "degradation_curve",
-        "source": "NREL / Argonne National Laboratory",
+        "source": "NREL 2023 Grid-Scale Battery Storage Cost Report; Argonne ANL BatPaC",
     },
     {
         "key": "bess_degradation_LFP",
         "value": {
             "chemistry": "LFP",
-            "capacity_fade_pct_per_cycle": 0.01,
+            "capacity_fade_pct_per_cycle": 0.007,
             "calendar_degradation_pct_per_year": 1.0,
             "eol_capacity_pct": 80.0,
-            "source_note": "Typical LFP chemistry values; more calendar-stable than NMC",
+            "source_note": "% capacity loss per full equivalent cycle (FEC); NREL 2023 Grid-Scale Battery Storage Cost Report",
         },
         "unit": "degradation_curve",
-        "source": "NREL / Argonne National Laboratory",
+        "source": "NREL 2023 Grid-Scale Battery Storage Cost Report; Argonne ANL BatPaC",
     },
 ]
 
@@ -247,8 +247,10 @@ REFERENCE_CAPEX_OPEX: list[dict[str, Any]] = [
         "key": "capex_bess_utility",
         "value": {
             "asset_type": "bess_utility",
-            "installed_cost_dollars_per_kwh": 400,
+            "installed_cost_dollars_per_kwh": 780,
             "om_cost_dollars_per_kwh_per_year": 8,
+            "chemistry": "LFP",
+            "degradation_curve_ref": "bess_degradation_LFP",
             "currency_year": 2025,
             "notes": "LFP 2-hour utility BESS; includes EPC and grid connection",
         },
@@ -294,11 +296,9 @@ async def seed_wa_defaults(session: AsyncSession) -> bool:
         return False
 
     # Check for existing seed (idempotency guard)
-    existing_stmt = select(AssumptionSetORM).where(
-        AssumptionSetORM.name == "WA Market Defaults 2025"
-    )
-    existing = await session.execute(existing_stmt)
-    if existing.scalar_one_or_none() is not None:
+    existing_stmt = text("SELECT 1 FROM assumption_sets WHERE name = :name LIMIT 1")
+    existing = await session.execute(existing_stmt, {"name": "WA Market Defaults 2025"})
+    if existing.fetchone() is not None:
         return False
 
     set_id = uuid.uuid4()

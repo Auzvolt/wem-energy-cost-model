@@ -375,6 +375,96 @@ class CapacityPrice(Base):
 
 
 # ---------------------------------------------------------------------------
+# AEMO Facility and Trading Interval data
+# ---------------------------------------------------------------------------
+
+
+class Facility(Base):
+    """AEMO WEM registered facility (generator or load).
+
+    Facilities are the participants in the WEM balancing market.
+    Data sourced from AEMO facility reference data.
+    """
+
+    __tablename__ = "facilities"
+
+    id = Column(Integer, primary_key=True)
+    facility_id = Column(String(50), nullable=False, unique=True)
+    facility_name = Column(String(255), nullable=False)
+    facility_type = Column(String(50), nullable=True)  # e.g., 'GENERATOR', 'LOAD'
+    fuel_type = Column(String(50), nullable=True)  # e.g., 'COAL', 'GAS', 'SOLAR', 'WIND'
+    capacity_mw = Column(Numeric(10, 4), nullable=True)
+    region = Column(String(50), nullable=True, default="WEM")
+    effective_from = Column(Date, nullable=True)
+    effective_to = Column(Date, nullable=True)
+    source = Column(String(50), nullable=False, default="aemo_public")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    trading_intervals = relationship(
+        "TradingInterval", back_populates="facility", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        Index("ix_facilities_facility_id", "facility_id"),
+        Index("ix_facilities_type", "facility_type"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Facility id={self.id} facility_id={self.facility_id!r} name={self.facility_name!r}>"
+        )
+
+
+class TradingInterval(Base):
+    """5-minute trading interval data per facility from AEMO.
+
+    Contains dispatch quantities, metered generation/consumption,
+    and operational data per facility per interval.
+    """
+
+    __tablename__ = "trading_intervals"
+
+    id = Column(Integer, primary_key=True)
+    facility_id = Column(
+        Integer,
+        ForeignKey("facilities.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    trading_date = Column(Date, nullable=False)
+    interval_start = Column(DateTime(timezone=True), nullable=False)
+    interval_end = Column(DateTime(timezone=True), nullable=False)
+    dispatch_mw = Column(Numeric(10, 4), nullable=True)
+    metered_mw = Column(Numeric(10, 4), nullable=True)
+    energy_mwh = Column(Numeric(12, 4), nullable=True)
+    source = Column(String(50), nullable=False, default="aemo_public")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    facility = relationship("Facility", back_populates="trading_intervals")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "facility_id",
+            "interval_start",
+            name="uq_trading_intervals_facility_interval",
+        ),
+        Index("ix_trading_intervals_facility_interval", "facility_id", "interval_start"),
+        Index("ix_trading_intervals_date", "trading_date"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<TradingInterval id={self.id} facility_id={self.facility_id} "
+            f"start={self.interval_start} dispatch={self.dispatch_mw} MW>"
+        )
+
+
+# ---------------------------------------------------------------------------
 # Scenarios and forward price curves
 # ---------------------------------------------------------------------------
 
