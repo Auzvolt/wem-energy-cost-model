@@ -93,9 +93,7 @@ def _send_slack_alert(check_name: str, detail: str) -> None:
 
     webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
     if not webhook_url:
-        logger.warning(
-            "SLACK_WEBHOOK_URL not configured. Falling back to log channel."
-        )
+        logger.warning("SLACK_WEBHOOK_URL not configured. Falling back to log channel.")
         _send_log_alert(check_name, detail)
         return
 

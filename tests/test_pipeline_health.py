@@ -165,6 +165,7 @@ class TestSendAlertLogChannel:
         with patch.dict("os.environ", {}, clear=False):
             # Ensure env var is not set
             import os
+
             os.environ.pop("ALERT_CHANNEL", None)
             channel = get_alert_channel()
         assert channel == AlertChannel.LOG
@@ -190,6 +191,7 @@ class TestSendAlertEmailChannel:
         buf = io.StringIO()
         with patch.dict("os.environ", {}, clear=False):
             import os
+
             for key in ("SMTP_HOST", "ALERT_EMAIL_FROM", "ALERT_EMAIL_TO"):
                 os.environ.pop(key, None)
             with patch.object(sys, "stderr", buf):
@@ -209,6 +211,7 @@ class TestSendAlertSlackChannel:
         buf = io.StringIO()
         with patch.dict("os.environ", {}, clear=False):
             import os
+
             os.environ.pop("SLACK_WEBHOOK_URL", None)
             with patch.object(sys, "stderr", buf):
                 send_alert("slack_check", "detail", AlertChannel.SLACK)

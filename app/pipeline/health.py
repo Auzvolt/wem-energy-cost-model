@@ -66,9 +66,7 @@ def check_data_gap(session: Any, product: str, threshold_hours: int = 25) -> dic
     from sqlalchemy import text  # noqa: PLC0415 — lazy import keeps module light
 
     row = session.execute(
-        text(
-            "SELECT MAX(timestamp) AS latest FROM market_prices WHERE product = :product"
-        ),
+        text("SELECT MAX(timestamp) AS latest FROM market_prices WHERE product = :product"),
         {"product": product},
     ).fetchone()
 
@@ -105,9 +103,7 @@ def check_data_gap(session: Any, product: str, threshold_hours: int = 25) -> dic
     }
 
 
-def check_schema_change(
-    expected_columns: list[str], actual_columns: list[str]
-) -> dict[str, Any]:
+def check_schema_change(expected_columns: list[str], actual_columns: list[str]) -> dict[str, Any]:
     """Check whether the CSV response contains all expected columns.
 
     Args:
