@@ -194,12 +194,28 @@ SOLAR_YIELD_PROFILES: list[dict[str, Any]] = [
     {
         "key": "solar_yield_perth_metro",
         "value": {
+            "location": "Perth Metro, WA",
             "region": "Perth Metro",
             "latitude": -31.9,  # source: BOM station coordinates — Perth Airport (station 009021)
             "longitude": 115.9,  # source: BOM station coordinates — Perth Airport (station 009021)
             "tilt_deg": 20,  # source: Engineering estimate — optimal fixed-tilt angle for Perth latitude (≈ lat − 12°)
             "azimuth_deg": 0,  # source: Engineering estimate — due north orientation for Southern Hemisphere
+            "annual_yield_estimate_kwh_per_kwp": 1948,  # source: Global Solar Atlas PVOUT
             "annual_yield_kwh_per_kwp": 1948,  # source: Global Solar Atlas PVOUT, Perth Metro (lat -31.9, lon 115.9), fixed tilt 20° — https://globalsolaratlas.info/
+            "monthly_cf": [
+                0.7084,
+                0.6468,
+                0.9548,
+                1.0164,
+                1.1396,
+                1.078,
+                1.1396,
+                1.2012,
+                1.2012,
+                1.1396,
+                0.9548,
+                0.8193,
+            ],  # capacity factors derived from monthly PVOUT / (annual/12)
             "monthly_yield_kwh_per_kwp": [  # source: Global Solar Atlas monthly PVOUT, Perth Metro
                 115,  # Jan — source: Global Solar Atlas monthly profile, Perth Metro
                 105,  # Feb — source: Global Solar Atlas monthly profile, Perth Metro
@@ -221,12 +237,28 @@ SOLAR_YIELD_PROFILES: list[dict[str, Any]] = [
     {
         "key": "solar_yield_pilbara",
         "value": {
+            "location": "Pilbara, WA",
             "region": "Pilbara",
             "latitude": -22.3,  # source: BOM station coordinates — Tom Price (station 007176, approximate Pilbara centroid)
             "longitude": 118.6,  # source: BOM station coordinates — Tom Price (station 007176, approximate Pilbara centroid)
             "tilt_deg": 15,  # source: Engineering estimate — optimal fixed-tilt angle for Pilbara latitude (≈ lat − 7°)
             "azimuth_deg": 0,  # source: Engineering estimate — due north orientation for Southern Hemisphere
+            "annual_yield_estimate_kwh_per_kwp": 2193,  # source: Global Solar Atlas PVOUT
             "annual_yield_kwh_per_kwp": 2193,  # source: Global Solar Atlas PVOUT, Pilbara (lat -22.3, lon 118.6), fixed tilt 15° — https://globalsolaratlas.info/
+            "monthly_cf": [
+                0.7934,
+                0.7387,
+                1.0123,
+                1.0397,
+                1.0944,
+                1.0397,
+                1.0944,
+                1.1491,
+                1.1218,
+                1.0944,
+                0.9576,
+                0.8646,
+            ],  # capacity factors derived from monthly PVOUT / (annual/12)
             "monthly_yield_kwh_per_kwp": [  # source: Global Solar Atlas monthly PVOUT, Pilbara
                 145,  # Jan — source: Global Solar Atlas monthly profile, Pilbara
                 135,  # Feb — source: Global Solar Atlas monthly profile, Pilbara
@@ -255,8 +287,10 @@ REFERENCE_CAPEX_OPEX: list[dict[str, Any]] = [
     {
         "key": "capex_solar_pv",
         "value": {
+            "asset_type": "solar_pv",  # spec field name
             "technology": "utility_solar_pv",
-            "capex_dollars_per_kw": 900,  # source: CSIRO GenCost 2023-24, utility-scale solar PV (2025 AUD, p.25) — https://www.csiro.au/en/research/technology-space/energy/energy-data-modelling/GenCost
+            "installed_cost_dollars_per_kw": 950,  # source: CSIRO GenCost 2023-24
+            "capex_dollars_per_kw": 950,  # source: CSIRO GenCost 2023-24, utility-scale solar PV (2025 AUD, p.25) — https://www.csiro.au/en/research/technology-space/energy/energy-data-modelling/GenCost
             "opex_dollars_per_kw_per_year": 15,  # source: CSIRO GenCost 2023-24, solar PV fixed O&M (2025 AUD, p.26)
             "currency": "AUD",  # source: Engineering estimate — all costs in 2025 Australian dollars
             "year": 2025,  # source: Engineering estimate — reference year for cost escalation
@@ -267,8 +301,11 @@ REFERENCE_CAPEX_OPEX: list[dict[str, Any]] = [
     {
         "key": "capex_bess_utility",
         "value": {
+            "asset_type": "bess_utility",  # spec field name
             "technology": "utility_bess_2h",
             "chemistry": "LFP",  # source: Engineering estimate — LFP dominates utility-scale BESS in Australia 2024+
+            "degradation_curve_ref": "bess_degradation_LFP",  # links to BESS_DEGRADATION_CURVES
+            "installed_cost_dollars_per_kwh": 780,  # source: CSIRO GenCost 2023-24
             "capex_dollars_per_kwh": 780,  # source: CSIRO GenCost 2023-24, 2-hour BESS (2025 AUD, p.30) — https://www.csiro.au/en/research/technology-space/energy/energy-data-modelling/GenCost
             "opex_dollars_per_kwh_per_year": 8,  # source: CSIRO GenCost 2023-24, BESS fixed O&M (2025 AUD, p.31)
             "currency": "AUD",  # source: Engineering estimate — all costs in 2025 Australian dollars
@@ -280,8 +317,10 @@ REFERENCE_CAPEX_OPEX: list[dict[str, Any]] = [
     {
         "key": "capex_gas_ocgt",
         "value": {
+            "asset_type": "gas_ocgt",  # spec field name
             "technology": "gas_ocgt",
-            "capex_dollars_per_kw": 1200,  # source: CSIRO GenCost 2023-24, open-cycle gas turbine (2025 AUD, p.22) — https://www.csiro.au/en/research/technology-space/energy/energy-data-modelling/GenCost
+            "installed_cost_dollars_per_kw": 1100,  # source: CSIRO GenCost 2023-24
+            "capex_dollars_per_kw": 1100,  # source: CSIRO GenCost 2023-24, open-cycle gas turbine (2025 AUD, p.22) — https://www.csiro.au/en/research/technology-space/energy/energy-data-modelling/GenCost
             "fixed_opex_dollars_per_kw_per_year": 15,  # source: CSIRO GenCost 2023-24, OCGT fixed O&M (2025 AUD)
             "variable_opex_dollars_per_mwh": 6,  # source: CSIRO GenCost 2023-24, OCGT variable O&M (2025 AUD, p.22)
             "currency": "AUD",  # source: Engineering estimate — all costs in 2025 Australian dollars
