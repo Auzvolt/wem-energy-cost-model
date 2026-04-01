@@ -180,9 +180,7 @@ def add_load_flex_constraints(
             f"{len(config.baseline_kw)} elements."
         )
 
-    baseline: dict[int, float] = {
-        t: config.baseline_kw[i] for i, t in enumerate(t_indices)
-    }
+    baseline: dict[int, float] = {t: config.baseline_kw[i] for i, t in enumerate(t_indices)}
 
     # ------------------------------------------------------------------
     # Decision variables
@@ -199,10 +197,7 @@ def add_load_flex_constraints(
     # scheduled = baseline − curtailed + shift_pos − shift_neg
     def _schedule_balance(m: Any, t: int) -> Any:
         return m.lf_scheduled_kw[t] == (
-            baseline[t]
-            - m.lf_curtailed_kw[t]
-            + m.lf_shift_pos[t]
-            - m.lf_shift_neg[t]
+            baseline[t] - m.lf_curtailed_kw[t] + m.lf_shift_pos[t] - m.lf_shift_neg[t]
         )
 
     model.lf_schedule_balance = pyo.Constraint(model.T, rule=_schedule_balance)
@@ -227,10 +222,7 @@ def add_load_flex_constraints(
     if config.shift_window == 0:
         # Whole-day: total shifted energy sums to zero
         model.lf_energy_balance = pyo.Constraint(
-            expr=sum(
-                model.lf_shift_pos[t] - model.lf_shift_neg[t] for t in model.T
-            )
-            == 0.0
+            expr=sum(model.lf_shift_pos[t] - model.lf_shift_neg[t] for t in model.T) == 0.0
         )
     else:
         # Windowed: rolling sum of net shift over shift_window intervals == 0
@@ -243,17 +235,14 @@ def add_load_flex_constraints(
         # Only apply at window start indices to avoid redundancy
         window_starts = t_indices[:: config.shift_window]
         model.lf_window_starts = pyo.Set(initialize=window_starts)
-        model.lf_energy_balance = pyo.Constraint(
-            model.lf_window_starts, rule=_windowed_balance
-        )
+        model.lf_energy_balance = pyo.Constraint(model.lf_window_starts, rule=_windowed_balance)
 
     # ------------------------------------------------------------------
     # Objective contribution
     # ------------------------------------------------------------------
     if config.curtail_value_per_kwh > 0:
         curtail_obj = sum(
-            model.lf_curtailed_kw[t] * config.curtail_value_per_kwh * interval_h
-            for t in model.T
+            model.lf_curtailed_kw[t] * config.curtail_value_per_kwh * interval_h for t in model.T
         )
         # Append to obj_terms list if present (engine convention)
         if hasattr(model, "obj_terms"):
