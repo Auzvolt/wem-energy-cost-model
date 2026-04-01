@@ -23,6 +23,7 @@ AWST = timezone(timedelta(hours=8))
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _row(
     start: datetime,
     energy: float,
@@ -61,6 +62,7 @@ def _make_rows(
 # ---------------------------------------------------------------------------
 # parse_nem12
 # ---------------------------------------------------------------------------
+
 
 class TestParseNem12:
     NEM12_SAMPLE = (
@@ -105,6 +107,7 @@ class TestParseNem12:
 # parse_generic_csv
 # ---------------------------------------------------------------------------
 
+
 class TestParseGenericCsv:
     CSV_SAMPLE = (
         "interval_start,energy_kwh\n"
@@ -113,15 +116,9 @@ class TestParseGenericCsv:
         "2024-01-01T01:00:00+08:00,0.9\n"
     )
 
-    CSV_WITH_POWER = (
-        "interval_start,energy_kwh,power_kw\n"
-        "2024-01-01T00:00:00+08:00,1.2,2.4\n"
-    )
+    CSV_WITH_POWER = "interval_start,energy_kwh,power_kw\n2024-01-01T00:00:00+08:00,1.2,2.4\n"
 
-    CSV_WITH_SITE = (
-        "interval_start,energy_kwh,site_id\n"
-        "2024-01-01T00:00:00+08:00,1.2,MYSITE\n"
-    )
+    CSV_WITH_SITE = "interval_start,energy_kwh,site_id\n2024-01-01T00:00:00+08:00,1.2,MYSITE\n"
 
     def test_parse_basic(self) -> None:
         rows = parse_generic_csv(self.CSV_SAMPLE)
@@ -163,6 +160,7 @@ class TestParseGenericCsv:
 # resample_to_5min
 # ---------------------------------------------------------------------------
 
+
 class TestResampleTo5Min:
     def test_5min_data_unchanged(self) -> None:
         rows = _make_rows(12, interval_minutes=5)
@@ -195,6 +193,7 @@ class TestResampleTo5Min:
 # ---------------------------------------------------------------------------
 # validate_intervals
 # ---------------------------------------------------------------------------
+
 
 class TestValidateIntervals:
     def test_valid_contiguous(self) -> None:
@@ -233,6 +232,7 @@ class TestValidateIntervals:
 # upsert_interval_data
 # ---------------------------------------------------------------------------
 
+
 class TestUpsertIntervalData:
     def test_insert_new_rows(self, db_session) -> None:
         rows = _make_rows(10)
@@ -251,6 +251,7 @@ class TestUpsertIntervalData:
         updated = _make_rows(3, energy=2.0)
         upsert_interval_data(db_session, "SITE001", updated)
         from app.db.models import IntervalData
+
         records = db_session.query(IntervalData).filter_by(site_id="SITE001").all()
         assert all(float(r.energy_kwh) == 2.0 for r in records)
 
@@ -263,11 +264,10 @@ class TestUpsertIntervalData:
 # ingest_interval_data (integration)
 # ---------------------------------------------------------------------------
 
+
 class TestIngestIntervalData:
     CSV_SAMPLE = (
-        "interval_start,energy_kwh\n"
-        "2024-01-01T00:00:00+08:00,1.2\n"
-        "2024-01-01T00:30:00+08:00,1.4\n"
+        "interval_start,energy_kwh\n2024-01-01T00:00:00+08:00,1.2\n2024-01-01T00:30:00+08:00,1.4\n"
     )
 
     def test_csv_ingest(self, db_session) -> None:

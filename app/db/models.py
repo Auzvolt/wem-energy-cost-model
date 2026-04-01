@@ -576,6 +576,7 @@ class Asset(Base):
     def __repr__(self) -> str:
         return f"<Asset id={self.id} type={self.asset_type!r} name={self.name!r}>"
 
+
 class IntervalData(Base):
     """5-minute interval meter data for a site/project load profile.
 

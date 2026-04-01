@@ -33,9 +33,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "site_id", "interval_start", name="uq_interval_data_site_start"
-        ),
+        sa.UniqueConstraint("site_id", "interval_start", name="uq_interval_data_site_start"),
     )
     op.create_index(
         "ix_interval_data_site_start",

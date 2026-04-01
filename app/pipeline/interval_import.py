@@ -48,6 +48,7 @@ class IngestResult:
 # Parsers
 # ---------------------------------------------------------------------------
 
+
 def parse_nem12(file_content: str) -> list[IntervalDataRow]:
     """Parse a NEM12 file and return a flat list of 5-minute interval rows.
 
@@ -188,6 +189,7 @@ def parse_generic_csv(file_content: str) -> list[IntervalDataRow]:
 # Resampling
 # ---------------------------------------------------------------------------
 
+
 def resample_to_5min(rows: list[IntervalDataRow]) -> list[IntervalDataRow]:
     """Resample interval rows to 5-minute resolution via linear interpolation.
 
@@ -231,6 +233,7 @@ def resample_to_5min(rows: list[IntervalDataRow]) -> list[IntervalDataRow]:
 # ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
+
 
 def validate_intervals(rows: list[IntervalDataRow]) -> ValidationResult:
     """Validate interval rows for gaps and outliers.
@@ -278,6 +281,7 @@ def validate_intervals(rows: list[IntervalDataRow]) -> ValidationResult:
 # Upsert
 # ---------------------------------------------------------------------------
 
+
 def upsert_interval_data(
     session: Session,
     site_id: str,
@@ -318,6 +322,7 @@ def upsert_interval_data(
 # ---------------------------------------------------------------------------
 # Top-level ingest
 # ---------------------------------------------------------------------------
+
 
 def ingest_interval_data(
     session: Session,
