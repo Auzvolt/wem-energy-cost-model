@@ -148,8 +148,18 @@ def _fetch_capacity(trading_date: date, dry_run: bool) -> int:
         )
         return 0
 
-    records = fetch_capacity_prices(trading_date)
-    return len(records) if records else 0
+    try:
+        from app.db.session import SessionLocal
+    except ImportError:
+        log.warning("SessionLocal not available; skipping capacity for %s", trading_date)
+        return 0
+
+    session = SessionLocal()
+    try:
+        records = fetch_capacity_prices(session)
+        return len(records) if records else 0
+    finally:
+        session.close()
 
 
 _PRODUCT_FETCHERS: dict[str, Any] = {
