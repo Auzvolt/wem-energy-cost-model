@@ -185,9 +185,9 @@ def fetch_capacity_prices(
         )
         if existing is not None:
             # Update in-place
-            existing.facility_name = row.facility_name
-            existing.capacity_credits_mw = row.capacity_credits_mw
-            existing.brcp_mwyr = row.brcp_mwyr
+            existing.facility_name = row.facility_name  # type: ignore[assignment]
+            existing.capacity_credits_mw = row.capacity_credits_mw  # type: ignore[assignment]
+            existing.brcp_mwyr = row.brcp_mwyr  # type: ignore[assignment]
             upserted.append(existing)
         else:
             record = CapacityPrice(
