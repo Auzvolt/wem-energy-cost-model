@@ -7,6 +7,7 @@ silently coerced.
 
 from __future__ import annotations
 
+import math
 from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
@@ -23,8 +24,6 @@ class FcessPriceRow(BaseModel):
     @classmethod
     def price_finite(cls, v: float) -> float:
         """Reject NaN / Inf prices."""
-        import math
-
         if not math.isfinite(v):
             raise ValueError(f"price_aud_mwh must be finite, got {v}")
         return v
@@ -42,8 +41,29 @@ class WholesalePriceRow(BaseModel):
     @classmethod
     def price_finite(cls, v: float) -> float:
         """Reject NaN / Inf prices."""
-        import math
-
         if not math.isfinite(v):
             raise ValueError(f"price_aud_mwh must be finite, got {v}")
+        return v
+
+
+class CapacityPriceRow(BaseModel):
+    """Validated row for a Reserve Capacity Mechanism price record.
+
+    Represents a single facility's capacity credit assignment and BRCP
+    for a given capacity year.
+    """
+
+    capacity_year: str = Field(min_length=1)  # e.g. '2024-25'
+    facility_id: str = Field(min_length=1)
+    facility_name: str = ""
+    capacity_credits_mw: float
+    brcp_mwyr: float
+    source_url: str = Field(min_length=1)
+
+    @field_validator("capacity_credits_mw", "brcp_mwyr")
+    @classmethod
+    def value_finite(cls, v: float) -> float:
+        """Reject NaN / Inf numeric fields."""
+        if not math.isfinite(v):
+            raise ValueError(f"value must be finite, got {v}")
         return v
