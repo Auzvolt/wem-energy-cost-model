@@ -21,7 +21,7 @@ def _get_database_url() -> str:
     # The config default is the placeholder; try Streamlit secrets instead.
     if url == "postgresql://user:password@localhost:5432/wem_energy":
         try:
-            import streamlit as st  # type: ignore[import-untyped]
+            import streamlit as st  # noqa: PLC0415
 
             url = str(st.secrets["DATABASE_URL"])
         except Exception:  # noqa: BLE001 — missing key, import error, or not in ST
