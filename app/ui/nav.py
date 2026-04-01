@@ -21,6 +21,8 @@ _ANALYST_PAGES = [
     # Assumptions is admin-only
 ]
 
+_USER_GUIDE_URL = "https://github.com/auzvolt/wem-energy-cost-model/blob/main/docs/user-guide.md"
+
 
 def render_sidebar(role: str) -> None:
     """Render the sidebar with role-appropriate navigation links.
@@ -41,3 +43,4 @@ def render_sidebar(role: str) -> None:
             st.caption("🔑 Admin access")
         else:
             st.caption("👤 Analyst access")
+        st.markdown(f"[📖 User Guide]({_USER_GUIDE_URL})")
