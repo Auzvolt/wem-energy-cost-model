@@ -246,7 +246,9 @@ class TestBuildCurveFromHistory:
 
     def test_escalation_increases_prices(self) -> None:
         base = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
-        rows = [_make_market_price_mock("ENERGY", base + timedelta(hours=h), 100.0) for h in range(168)]
+        rows = [
+            _make_market_price_mock("ENERGY", base + timedelta(hours=h), 100.0) for h in range(168)
+        ]
         session = self._make_session(rows)
 
         points = build_curve_from_history(
@@ -267,7 +269,9 @@ class TestBuildCurveFromHistory:
 
     def test_scenario_id_attached(self) -> None:
         base = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
-        rows = [_make_market_price_mock("ENERGY", base + timedelta(hours=h), 80.0) for h in range(24)]
+        rows = [
+            _make_market_price_mock("ENERGY", base + timedelta(hours=h), 80.0) for h in range(24)
+        ]
         session = self._make_session(rows)
 
         points = build_curve_from_history(
@@ -284,7 +288,9 @@ class TestBuildCurveFromHistory:
 
     def test_horizon_duration_correct(self) -> None:
         base = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
-        rows = [_make_market_price_mock("ENERGY", base + timedelta(hours=h), 90.0) for h in range(168)]
+        rows = [
+            _make_market_price_mock("ENERGY", base + timedelta(hours=h), 90.0) for h in range(168)
+        ]
         session = self._make_session(rows)
 
         points = build_curve_from_history(
