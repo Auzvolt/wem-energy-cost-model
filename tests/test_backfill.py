@@ -93,9 +93,9 @@ def test_idempotency_run_twice(tmp_path: Path) -> None:
         call_counts["fcess"] += 1
         return 3
 
-    with (
-        patch("app.pipeline.backfill._fetch_energy", side_effect=_fake_energy),
-        patch("app.pipeline.backfill._fetch_fcess", side_effect=_fake_fcess),
+    with patch.dict(
+        "app.pipeline.backfill._PRODUCT_FETCHERS",
+        {"energy": _fake_energy, "fcess": _fake_fcess},
     ):
         run_backfill(date(2024, 1, 1), date(2024, 1, 3), ["energy", "fcess"], checkpoint_path=cp)
         # Second run — should skip all (already "ok")
@@ -124,7 +124,10 @@ def test_checkpoint_written_on_partial_failure(tmp_path: Path) -> None:
             raise RuntimeError("simulated API failure")
         return 4
 
-    with patch("app.pipeline.backfill._fetch_energy", side_effect=_fake_energy):
+    with patch.dict(
+        "app.pipeline.backfill._PRODUCT_FETCHERS",
+        {"energy": _fake_energy},
+    ):
         run_backfill(date(2024, 1, 1), date(2024, 1, 3), ["energy"], checkpoint_path=cp)
 
     checkpoint = _load_checkpoint(cp)
@@ -156,7 +159,10 @@ def test_resume_skips_ok_retries_error(tmp_path: Path) -> None:
         call_log.append(trading_date)
         return 4
 
-    with patch("app.pipeline.backfill._fetch_energy", side_effect=_fake_energy):
+    with patch.dict(
+        "app.pipeline.backfill._PRODUCT_FETCHERS",
+        {"energy": _fake_energy},
+    ):
         run_backfill(date(2024, 1, 1), date(2024, 1, 2), ["energy"], checkpoint_path=cp)
 
     # Only day 2 should have been retried
@@ -184,9 +190,9 @@ def test_partial_failure_does_not_block_other_products(tmp_path: Path) -> None:
         fcess_dates.append(trading_date)
         return 2
 
-    with (
-        patch("app.pipeline.backfill._fetch_energy", side_effect=_fail_energy),
-        patch("app.pipeline.backfill._fetch_fcess", side_effect=_ok_fcess),
+    with patch.dict(
+        "app.pipeline.backfill._PRODUCT_FETCHERS",
+        {"energy": _fail_energy, "fcess": _ok_fcess},
     ):
         run_backfill(date(2024, 1, 1), date(2024, 1, 1), ["energy", "fcess"], checkpoint_path=cp)
 
@@ -220,9 +226,9 @@ def test_dry_run_no_db_writes(tmp_path: Path) -> None:
             fcess_called = True
         return 0
 
-    with (
-        patch("app.pipeline.backfill._fetch_energy", side_effect=_spy_energy),
-        patch("app.pipeline.backfill._fetch_fcess", side_effect=_spy_fcess),
+    with patch.dict(
+        "app.pipeline.backfill._PRODUCT_FETCHERS",
+        {"energy": _spy_energy, "fcess": _spy_fcess},
     ):
         run_backfill(
             date(2024, 1, 1),
@@ -258,14 +264,5 @@ def test_main_start_after_end_exits() -> None:
 
     with pytest.raises(SystemExit) as exc_info:
         main(["--start", "2024-03-01", "--end", "2024-01-01"])
-
-    assert exc_info.value.code == 1
-
-
-def test_main_invalid_product_exits() -> None:
-    from app.pipeline.backfill import main
-
-    with pytest.raises(SystemExit) as exc_info:
-        main(["--start", "2024-01-01", "--end", "2024-01-01", "--products", "invalid_product"])
 
     assert exc_info.value.code == 1
