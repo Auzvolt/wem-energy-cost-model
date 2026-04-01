@@ -289,14 +289,14 @@ def test_async_503_retries_then_succeeds() -> None:
             pass
 
         with patch("app.pipeline.aemo_client.asyncio.sleep", fake_sleep), patch("time.sleep"):
-                client, transport = _async_client(
-                    [
-                        _text_resp(503),
-                        _text_resp(503),
-                        _json_resp(200, {"data": "ok"}),
-                    ]
-                )
-                result = await client.get_json("https://test.aemo.example/data")
+            client, transport = _async_client(
+                [
+                    _text_resp(503),
+                    _text_resp(503),
+                    _json_resp(200, {"data": "ok"}),
+                ]
+            )
+            result = await client.get_json("https://test.aemo.example/data")
         await client.aclose()
         return result, transport.call_count
 
@@ -313,14 +313,14 @@ def test_async_429_honours_retry_after() -> None:
 
     async def _run() -> Any:
         with patch("app.pipeline.aemo_client.asyncio.sleep", fake_sleep), patch("time.sleep"):
-                client, transport = _async_client(
-                    [
-                        _json_resp(429, {}, headers={"Retry-After": "7"}),
-                        _json_resp(429, {}, headers={"Retry-After": "7"}),
-                        _json_resp(200, {"result": "async_data"}),
-                    ]
-                )
-                result = await client.get_json("https://test.aemo.example/data")
+            client, transport = _async_client(
+                [
+                    _json_resp(429, {}, headers={"Retry-After": "7"}),
+                    _json_resp(429, {}, headers={"Retry-After": "7"}),
+                    _json_resp(200, {"result": "async_data"}),
+                ]
+            )
+            result = await client.get_json("https://test.aemo.example/data")
         await client.aclose()
         return result, transport.call_count
 
