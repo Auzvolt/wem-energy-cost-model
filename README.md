@@ -38,7 +38,7 @@ source .venv/bin/activate
 ### 2. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ### 3. Configure environment variables
@@ -62,9 +62,13 @@ alembic upgrade head
 streamlit run app/streamlit_app.py
 ```
 
+> **Entrypoint:** `app/streamlit_app.py` is the single application entrypoint.
+> When deploying to Streamlit Community Cloud, set **Main file path** to
+> `app/streamlit_app.py`.
+
 ## Deployment
 
-For full deployment instructions (Streamlit Community Cloud + Supabase/Neon),
+For full deployment instructions (Streamlit Community Cloud + Supabase PostgreSQL),
 see **[docs/deployment.md](docs/deployment.md)**.
 
 ### Required secrets (Streamlit Cloud)
