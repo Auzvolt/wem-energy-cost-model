@@ -1,8 +1,12 @@
 [server]
-# Keep headless=true for Streamlit Community Cloud
+# Required for Streamlit Community Cloud
 headless = true
 enableCORS = false
 enableXsrfProtection = true
+# Disable file watcher on cloud (no local file changes expected)
+runOnSave = false
+# Max upload size for data files (MB)
+maxUploadSize = 50
 
 [browser]
 gatherUsageStats = false
@@ -14,3 +18,7 @@ backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f0f2f6"
 textColor = "#262730"
 font = "sans serif"
+
+[logger]
+# Structured JSON logging for cloud log aggregation
+level = "info"

@@ -10,7 +10,7 @@ This document describes how to deploy the WEM Energy Cost Modelling Tool to
 | Layer | Service |
 |-------|---------|
 | Frontend / App | Streamlit Community Cloud (free tier) |
-| Database | Supabase free tier **or** Neon free tier |
+| Database | Supabase (PostgreSQL) |
 | Source control | GitHub — `auzvolt/wem-energy-cost-model` |
 
 Streamlit Community Cloud redeploys automatically on every push to `main`.
@@ -30,17 +30,20 @@ Streamlit Community Cloud redeploys automatically on every push to `main`.
    ```
 4. Keep this value; you will need it in step 4.
 
-> **Tip:** Supabase exposes a connection pooler on port 6543.  Use the direct
-> port 5432 URI for Alembic migrations and the pooler URI for the running app
-> if you want PgBouncer support.
-
-### Option B — Neon
-
-1. Sign in at <https://neon.tech> and create a new project.
-2. Copy the connection string from the dashboard:
-   ```
-   postgresql://neondb_owner:<password>@<host>.neon.tech/neondb?sslmode=require
-   ```
+> **Connection string format:** Supabase provides two connection modes:
+> 
+> | Mode | Host format | Port | When to use |
+> |------|-------------|------|-------------|
+> | **Direct** | `db.<ref>.supabase.co` | `5432` | Alembic migrations (requires long-lived connections) |
+> | **Transaction pooler** | `aws-0-<region>.pooler.supabase.com` | `5432` | Running app (efficient for short-lived Streamlit sessions) |
+>
+> For the transaction pooler with SQLAlchemy, append `?pgbouncer=true` to
+> disable server-side prepared statements, which are incompatible with
+> PgBouncer in transaction mode:
+> ```
+> DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres?pgbouncer=true
+> ```
+> For Alembic migrations, use the **direct** URI (no `?pgbouncer=true`).
 
 ---
 
@@ -56,7 +59,7 @@ export DATABASE_URL="postgresql://..."   # paste your cloud URI here
 alembic upgrade head
 ```
 
-All 9 tables will be created.  Verify in the Supabase / Neon dashboard under
+All 9 tables will be created.  Verify in the Supabase dashboard under
 **Table Editor**.
 
 ---
@@ -126,7 +129,7 @@ Once the app is running, confirm the following:
 git clone https://github.com/auzvolt/wem-energy-cost-model.git
 cd wem-energy-cost-model
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 
 # Configure
 cp .env.example .env
