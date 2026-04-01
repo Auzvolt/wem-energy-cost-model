@@ -56,6 +56,7 @@ class ModelConfig:
     interval_minutes: int = 5  # WEM post-reform dispatch interval
     objective_sense: ObjectiveSense = ObjectiveSense.maximise_revenue
     solver: SolverConfig = field(default_factory=SolverConfig)
+    auto_size: bool = field(default=False)  # Enable auto-sizing optimisation mode
 
 
 # ---------------------------------------------------------------------------
