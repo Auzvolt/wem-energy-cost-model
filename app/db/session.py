@@ -7,8 +7,29 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app import config
 
+
+def _get_database_url() -> str:
+    """Resolve DATABASE_URL from env via config, with Streamlit secrets fallback.
+
+    Resolution order:
+    1. ``config.DATABASE_URL`` (populated from ``DATABASE_URL`` env var)
+    2. ``st.secrets["DATABASE_URL"]`` when running inside Streamlit Cloud
+       and the env var is not set / is the placeholder default.
+    """
+    url: str = config.DATABASE_URL
+    # The config default is the placeholder; try Streamlit secrets instead.
+    if url == "postgresql://user:password@localhost:5432/wem_energy":
+        try:
+            import streamlit as st  # type: ignore[import-untyped]
+
+            url = str(st.secrets["DATABASE_URL"])
+        except Exception:  # noqa: BLE001 — missing key, import error, or not in ST
+            pass
+    return url
+
+
 engine = create_engine(
-    config.DATABASE_URL,
+    _get_database_url(),
     pool_pre_ping=True,
     echo=config.LOG_LEVEL == "DEBUG",
 )
