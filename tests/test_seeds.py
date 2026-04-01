@@ -103,80 +103,48 @@ class TestSeedWaDefaultsIdempotency:
 
     @pytest.mark.asyncio
     async def test_skips_if_already_seeded(self) -> None:
-        """If execute returns an existing row via fetchone, seed returns False."""
+        """If scalar() returns a positive count, seed returns False immediately."""
 
-        # Mock the ORM import
         mock_result = MagicMock()
-        mock_result.fetchone.return_value = MagicMock()  # truthy = existing row found
+        mock_result.scalar.return_value = 1  # existing row found → count > 0
 
         mock_session = AsyncMock()
         mock_session.execute.return_value = mock_result
 
-        # Patch text() so we don't need a real DB
         mock_text = MagicMock(return_value=MagicMock())
-        with (
-            patch.dict(
-                "sys.modules",
-                {
-                    "db.assumption_orm": MagicMock(
-                        AssumptionSetORM=MagicMock(),
-                        AssumptionEntryORM=MagicMock(),
-                    )
-                },
-            ),
-            patch("app.assumptions.seeds.text", mock_text),
-        ):
+        with patch("app.assumptions.seeds.text", mock_text):
             result = await seed_wa_defaults(mock_session)
 
         assert result is False
-        # session.add should NOT have been called
-        mock_session.add.assert_not_called()
+        # Only the existence check execute() should have been called
+        assert mock_session.execute.call_count == 1
 
     @pytest.mark.asyncio
     async def test_inserts_when_no_existing_set(self) -> None:
-        """If no existing set, seed creates and returns True."""
+        """If no existing set (count == 0), seed inserts all records and returns True."""
 
         mock_result = MagicMock()
-        mock_result.fetchone.return_value = None  # no existing row
+        mock_result.scalar.return_value = 0  # no existing row
 
         mock_session = AsyncMock()
         mock_session.execute.return_value = mock_result
         mock_session.flush = AsyncMock()
 
-        mock_set_orm_class = MagicMock()
-        mock_entry_orm_class = MagicMock()
-
         mock_text = MagicMock(return_value=MagicMock())
-        with (
-            patch.dict(
-                "sys.modules",
-                {
-                    "db.assumption_orm": MagicMock(
-                        AssumptionSetORM=mock_set_orm_class,
-                        AssumptionEntryORM=mock_entry_orm_class,
-                    )
-                },
-            ),
-            patch("app.assumptions.seeds.text", mock_text),
-        ):
+        with patch("app.assumptions.seeds.text", mock_text):
             result = await seed_wa_defaults(mock_session)
 
         assert result is True
-        # session.add should have been called for the set + all entries
+
+        # execute() is called:
+        #   1 × existence check
+        #   1 × INSERT INTO assumption_sets
+        #   N × INSERT INTO assumption_entries (one per entry in all_entries)
         expected_entry_count = (
             len(WA_TARIFF_SCHEDULES)
             + len(BESS_DEGRADATION_CURVES)
             + len(SOLAR_YIELD_PROFILES)
             + len(REFERENCE_CAPEX_OPEX)
         )
-        assert mock_session.add.call_count == 1 + expected_entry_count
-
-    @pytest.mark.asyncio
-    async def test_returns_false_when_orm_not_available(self) -> None:
-        """Gracefully returns False if db.assumption_orm cannot be imported."""
-        mock_session = AsyncMock()
-
-        with patch.dict("sys.modules", {"db.assumption_orm": None}):
-            result = await seed_wa_defaults(mock_session)
-
-        assert result is False
+        expected_execute_calls = 1 + 1 + expected_entry_count
+        assert mock_session.execute.call_count == expected_execute_calls
