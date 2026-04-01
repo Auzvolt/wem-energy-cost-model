@@ -575,3 +575,33 @@ class Asset(Base):
 
     def __repr__(self) -> str:
         return f"<Asset id={self.id} type={self.asset_type!r} name={self.name!r}>"
+
+class IntervalData(Base):
+    """5-minute interval meter data for a site/project load profile.
+
+    Supports NEM12 and generic CSV imports.  Each record represents one
+    5-minute interval.  The ``(site_id, interval_start)`` pair is unique so
+    repeated imports are idempotent.
+    """
+
+    __tablename__ = "interval_data"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    site_id = Column(String(100), nullable=False, index=True)
+    interval_start = Column(DateTime(timezone=True), nullable=False)
+    interval_end = Column(DateTime(timezone=True), nullable=False)
+    energy_kwh = Column(Numeric(12, 6), nullable=False)
+    power_kw = Column(Numeric(10, 4), nullable=True)
+    source = Column(String(20), nullable=False, default="csv")  # 'nem12' | 'csv'
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("site_id", "interval_start", name="uq_interval_data_site_start"),
+        Index("ix_interval_data_site_start", "site_id", "interval_start"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<IntervalData site={self.site_id!r} start={self.interval_start} "
+            f"energy={self.energy_kwh} kWh>"
+        )

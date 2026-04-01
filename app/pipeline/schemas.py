@@ -67,3 +67,22 @@ class CapacityPriceRow(BaseModel):
         if not math.isfinite(v):
             raise ValueError(f"value must be finite, got {v}")
         return v
+
+
+class IntervalDataRow(BaseModel):
+    """Validated row for a 5-minute interval meter reading."""
+
+    site_id: str = Field(min_length=1)
+    interval_start: datetime
+    interval_end: datetime
+    energy_kwh: float
+    power_kw: float | None = None
+    source: str = "csv"  # 'nem12' | 'csv'
+
+    @field_validator("energy_kwh")
+    @classmethod
+    def energy_non_negative(cls, v: float) -> float:
+        """Energy consumption must be >= 0."""
+        if v < 0:
+            raise ValueError(f"energy_kwh must be >= 0, got {v}")
+        return v
