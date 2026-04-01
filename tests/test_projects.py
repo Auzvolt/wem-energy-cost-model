@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -23,7 +25,7 @@ from app.db.projects import (
 
 
 @pytest.fixture
-def db() -> Session:
+def db() -> Generator[Session, None, None]:
     """In-memory SQLite session with all ORM tables."""
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
@@ -67,7 +69,9 @@ def test_rename_project(db: Session) -> None:
     renamed = rename_project(db, int(proj.id), "New Name")
     db.commit()
     assert renamed.name == "New Name"
-    assert get_project(db, int(proj.id)).name == "New Name"
+    _fetched = get_project(db, int(proj.id))
+    assert _fetched is not None
+    assert _fetched.name == "New Name"
 
 
 def test_delete_project(db: Session) -> None:
@@ -90,7 +94,7 @@ def test_create_and_list_sites(db: Session) -> None:
     pid = int(proj.id)
 
     assert list_sites(db, pid) == []
-    site = create_site(db, pid, "Main Site", nmi="6305000001")
+    _ = create_site(db, pid, "Main Site", nmi="6305000001")
     db.commit()
     sites = list_sites(db, pid)
     assert len(sites) == 1
@@ -120,7 +124,7 @@ def test_create_and_list_scenarios(db: Session) -> None:
     pid = int(proj.id)
 
     assert list_scenarios(db, pid) == []
-    sc = create_scenario(db, pid, "Base Case")
+    _ = create_scenario(db, pid, "Base Case")
     db.commit()
     scenarios = list_scenarios(db, pid)
     assert len(scenarios) == 1
