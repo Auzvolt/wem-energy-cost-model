@@ -23,6 +23,7 @@ import httpx
 import pandas as pd
 
 from app.pipeline.aemo_client import AsyncAEMOClient
+from app.pipeline.schemas import WholesalePriceRow
 
 log = logging.getLogger(__name__)
 
@@ -165,6 +166,16 @@ def parse_balancing_csv(csv_text: str, source_url: str) -> list[WholesalePriceRe
         if ts is None:
             continue
 
+        try:
+            WholesalePriceRow(
+                interval_start_utc=ts,
+                price_aud_mwh=price,
+                product="ENERGY",
+                source_url=source_url,
+            )
+        except Exception as exc:
+            log.warning("Balancing row failed Pydantic validation (skipped): %s", exc)
+            continue
         records.append(
             WholesalePriceRecord(
                 interval_start_utc=ts,
@@ -215,6 +226,16 @@ def parse_fcess_csv(
         if ts is None:
             continue
 
+        try:
+            WholesalePriceRow(
+                interval_start_utc=ts,
+                price_aud_mwh=price,
+                product=product,
+                source_url=source_url,
+            )
+        except Exception as exc:
+            log.warning("FCESS CSV row failed Pydantic validation (skipped): %s", exc)
+            continue
         records.append(
             WholesalePriceRecord(
                 interval_start_utc=ts,
