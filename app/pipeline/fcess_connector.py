@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from app.config import AEMO_API_BASE_URL, AEMO_API_KEY
 from app.db.models import Base
+from app.pipeline.schemas import FcessPriceRow
 
 log = logging.getLogger(__name__)
 
@@ -191,6 +192,16 @@ def _row_to_record(row: dict[str, Any], product: str, source_url: str) -> FcessP
     try:
         price = float(price_raw)  # type: ignore[arg-type]
     except (TypeError, ValueError):
+        return None
+
+    try:
+        FcessPriceRow(
+            product=product,
+            interval_start_utc=ts_utc,
+            price_aud_mwh=price,
+        )
+    except Exception as exc:
+        log.warning("FCESS row failed Pydantic validation (skipped): %s", exc)
         return None
 
     return FcessPrice(
