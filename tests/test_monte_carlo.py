@@ -128,8 +128,8 @@ class TestGeneratePriceTraces:
         traces1 = generate_price_traces(cfg, n_intervals=24)
         traces2 = generate_price_traces(cfg, n_intervals=24)
         for t1, t2 in zip(traces1, traces2, strict=True):
-            assert t1["ENERGY"] == t2["ENERGY"]
-            assert t1["FCESS_REG_RAISE"] == t2["FCESS_REG_RAISE"]
+            assert (t1["ENERGY"] == t2["ENERGY"]).all()
+            assert (t1["FCESS_REG_RAISE"] == t2["FCESS_REG_RAISE"]).all()
 
     def test_energy_prices_clamped(self) -> None:
         """High std forces some samples outside ±1000; they must be clamped."""
@@ -231,3 +231,148 @@ class TestRunMonteCarlo:
         # At least some scenarios should have a computable IRR
         irr_values = [sr.irr for sr in results.scenario_results if sr.irr is not None]
         assert len(irr_values) > 0
+
+
+# ---------------------------------------------------------------------------
+# SAA mode: engine_factory tests
+# ---------------------------------------------------------------------------
+
+
+class TestRunMonteCarloEngineFactory:
+    """Tests for SAA mode (engine_factory parameter)."""
+
+    def _basic_config(self, n: int = 10) -> UncertaintyConfig:
+        return UncertaintyConfig(
+            n_scenarios=n,
+            seed=7,
+            distributions={"ENERGY": NormalDistribution(mean=80.0, std=10.0)},
+        )
+
+    def test_engine_factory_called_per_scenario(self) -> None:
+        """engine_factory must be called exactly n_scenarios times."""
+        call_count = 0
+
+        def mock_factory(prices: dict[int, float]):
+            nonlocal call_count
+            call_count += 1
+            from app.optimisation.engine import SolveResult
+
+            return SolveResult(
+                status="optimal",
+                termination_condition="optimal",
+                objective_value=50_000.0,
+                solve_time_seconds=0.1,
+            )
+
+        cfg = self._basic_config(n=15)
+        run_monte_carlo(0.0, 1.0, 500_000.0, cfg, n_intervals=24, engine_factory=mock_factory)
+        assert call_count == 15
+
+    def test_engine_factory_objective_used_as_revenue(self) -> None:
+        """annual_revenue in each ScenarioResult must equal objective_value from factory."""
+        fixed_revenue = 123_456.78
+
+        def mock_factory(prices: dict[int, float]):
+            from app.optimisation.engine import SolveResult
+
+            return SolveResult(
+                status="optimal",
+                termination_condition="optimal",
+                objective_value=fixed_revenue,
+                solve_time_seconds=0.05,
+            )
+
+        cfg = self._basic_config(n=10)
+        results = run_monte_carlo(
+            0.0, 5.0, 1_000_000.0, cfg, n_intervals=24, engine_factory=mock_factory
+        )
+        for sr in results.scenario_results:
+            assert abs(sr.annual_revenue - fixed_revenue) < 1e-6
+
+    def test_engine_factory_receives_price_dict_with_correct_length(self) -> None:
+        """The price dict passed to factory must have n_intervals entries."""
+        n_intervals = 48
+        received_lengths: list[int] = []
+
+        def mock_factory(prices: dict[int, float]):
+            received_lengths.append(len(prices))
+            from app.optimisation.engine import SolveResult
+
+            return SolveResult(
+                status="optimal",
+                termination_condition="optimal",
+                objective_value=10_000.0,
+                solve_time_seconds=0.01,
+            )
+
+        cfg = self._basic_config(n=10)
+        run_monte_carlo(
+            0.0, 1.0, 100_000.0, cfg, n_intervals=n_intervals, engine_factory=mock_factory
+        )
+        assert all(length == n_intervals for length in received_lengths)
+
+    def test_engine_factory_price_dict_keys_are_zero_based_ints(self) -> None:
+        """Keys in price dict must be 0-based integer interval indices."""
+        n_intervals = 12
+        key_sets: list[set[int]] = []
+
+        def mock_factory(prices: dict[int, float]):
+            key_sets.append(set(prices.keys()))
+            from app.optimisation.engine import SolveResult
+
+            return SolveResult(
+                status="optimal",
+                termination_condition="optimal",
+                objective_value=5_000.0,
+                solve_time_seconds=0.01,
+            )
+
+        cfg = self._basic_config(n=10)
+        run_monte_carlo(
+            0.0, 1.0, 100_000.0, cfg, n_intervals=n_intervals, engine_factory=mock_factory
+        )
+        expected_keys = set(range(n_intervals))
+        for ks in key_sets:
+            assert ks == expected_keys
+
+    def test_engine_factory_none_objective_treated_as_zero(self) -> None:
+        """If factory returns objective_value=None, annual_revenue should be 0.0."""
+        from app.optimisation.engine import SolveResult
+
+        def mock_factory(prices: dict[int, float]):
+            return SolveResult(
+                status="infeasible",
+                termination_condition="infeasible",
+                objective_value=None,
+                solve_time_seconds=0.01,
+            )
+
+        cfg = self._basic_config(n=10)
+        results = run_monte_carlo(
+            0.0, 1.0, 100_000.0, cfg, n_intervals=24, engine_factory=mock_factory
+        )
+        for sr in results.scenario_results:
+            assert sr.annual_revenue == 0.0
+
+    def test_engine_factory_npv_computed_from_factory_revenue(self) -> None:
+        """NPV must be derived from engine revenue, not base_revenue_per_mw."""
+        from app.optimisation.engine import SolveResult
+
+        engine_revenue = 200_000.0
+        base_revenue_per_mw = 1_000_000.0  # intentionally very different
+
+        def mock_factory(prices: dict[int, float]):
+            return SolveResult(
+                status="optimal",
+                termination_condition="optimal",
+                objective_value=engine_revenue,
+                solve_time_seconds=0.01,
+            )
+
+        cfg = self._basic_config(n=10)
+        results = run_monte_carlo(
+            base_revenue_per_mw, 1.0, 500_000.0, cfg, n_intervals=24, engine_factory=mock_factory
+        )
+        # If base_revenue were used, NPV would be much larger
+        for sr in results.scenario_results:
+            assert abs(sr.annual_revenue - engine_revenue) < 1e-6
