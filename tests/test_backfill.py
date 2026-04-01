@@ -225,7 +225,11 @@ def test_dry_run_no_db_writes(tmp_path: Path) -> None:
         patch("app.pipeline.backfill._fetch_fcess", side_effect=_spy_fcess),
     ):
         run_backfill(
-            date(2024, 1, 1), date(2024, 1, 2), ["energy", "fcess"], dry_run=True, checkpoint_path=cp
+            date(2024, 1, 1),
+            date(2024, 1, 2),
+            ["energy", "fcess"],
+            dry_run=True,
+            checkpoint_path=cp,
         )
 
     assert not energy_called, "Energy fetcher should not write to DB in dry-run"
