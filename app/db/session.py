@@ -1,6 +1,6 @@
 """Database session factory."""
 
-from collections.abc import Generator
+from collections.abc import Generator, Iterator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -16,7 +16,8 @@ def _get_database_url() -> str:
     2. ``st.secrets["DATABASE_URL"]`` when running inside Streamlit Cloud
        and the env var is not set / is the placeholder default.
     """
-    url: str = config.DATABASE_URL
+    # Coerce to str — config.DATABASE_URL may be a Pydantic AnyUrl type.
+    url: str = str(config.DATABASE_URL)
     # The config default is the placeholder; try Streamlit secrets instead.
     if url == "postgresql://user:password@localhost:5432/wem_energy":
         try:
@@ -38,7 +39,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(engine, autocommit=False, autoflush=False)
 
 
-def get_session() -> Generator[Session, None, None]:
+def get_session() -> Iterator[Session]:
     """Yield a database session and ensure it is closed afterwards."""
     session = SessionLocal()
     try:
