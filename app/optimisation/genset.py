@@ -110,6 +110,32 @@ class GensetConfig(BaseModel):
         description="Availability factor (0–1)",
     )
 
+    min_run_time_intervals: int = Field(
+        default=0,
+        ge=0,
+        description=(
+            "Minimum number of dispatch intervals the genset must remain ON "
+            "after starting. 0 disables the constraint."
+        ),
+    )
+    min_off_time_intervals: int = Field(
+        default=0,
+        ge=0,
+        description=(
+            "Minimum number of dispatch intervals the genset must remain OFF "
+            "after stopping. 0 disables the constraint."
+        ),
+    )
+    heat_rate_curve: list[tuple[float, float]] | None = Field(
+        default=None,
+        description=(
+            "Optional piecewise linear heat rate curve as a list of "
+            "(output_kw, heat_rate_gj_per_mwh) breakpoints, ordered by "
+            "increasing output_kw. When None, the scalar heat_rate_gj_per_mwh "
+            "is used for all dispatch levels."
+        ),
+    )
+
     @model_validator(mode="after")
     def _validate_min_loading(self) -> GensetConfig:
         if self.min_loading_pct >= 1.0:
@@ -137,6 +163,55 @@ class GensetConfig(BaseModel):
         = heat_rate (GJ/MWh) * fuel_cost (AUD/GJ) / 1000 (kWh per MWh)
         """
         return self.heat_rate_gj_per_mwh * self.fuel_cost_aud_per_gj / 1_000.0
+
+    def fuel_cost_for_output_kw(
+        self,
+        output_kw: float,
+        interval_duration_h: float = 0.5,
+    ) -> float:
+        """Calculate fuel cost (AUD) for a given output level over one interval.
+
+        When ``heat_rate_curve`` is provided, the heat rate is linearly
+        interpolated between the two nearest breakpoints.  Outside the curve
+        range the nearest endpoint value is used (flat extrapolation).
+
+        When ``heat_rate_curve`` is ``None`` the constant
+        ``heat_rate_gj_per_mwh`` scalar is used.
+
+        Args:
+            output_kw: Dispatch level (kW). Must be >= 0.
+            interval_duration_h: Interval duration in hours. Default 0.5 h.
+
+        Returns:
+            Fuel cost in AUD for the interval.
+        """
+        if output_kw < 0:
+            raise ValueError(f"output_kw must be >= 0, got {output_kw}")
+        if interval_duration_h <= 0:
+            raise ValueError(f"interval_duration_h must be > 0, got {interval_duration_h}")
+
+        if self.heat_rate_curve is None:
+            heat_rate = self.heat_rate_gj_per_mwh
+        else:
+            curve = sorted(self.heat_rate_curve, key=lambda p: p[0])
+            if output_kw <= curve[0][0]:
+                heat_rate = curve[0][1]
+            elif output_kw >= curve[-1][0]:
+                heat_rate = curve[-1][1]
+            else:
+                # Linear interpolation between bracketing breakpoints
+                for i in range(len(curve) - 1):
+                    x0, hr0 = curve[i]
+                    x1, hr1 = curve[i + 1]
+                    if x0 <= output_kw <= x1:
+                        t = (output_kw - x0) / (x1 - x0)
+                        heat_rate = hr0 + t * (hr1 - hr0)
+                        break
+                else:
+                    heat_rate = self.heat_rate_gj_per_mwh
+
+        dispatch_mwh = output_kw * interval_duration_h / 1_000.0
+        return dispatch_mwh * heat_rate * self.fuel_cost_aud_per_gj
 
 
 # ---------------------------------------------------------------------------
@@ -299,6 +374,32 @@ def add_genset_constraints(
     logical_name = f"{name_prefix}_logical"
     setattr(model, logical_name, pyo.Constraint(T, rule=_start_stop_rule))
     constraint_names.append(logical_name)
+
+    # Minimum up time (MUT): if started within the last min_run_time_intervals
+    # intervals, the genset must still be online.
+    if config.min_run_time_intervals > 1:
+        mut = config.min_run_time_intervals
+
+        def _mut_rule(m: pyo.ConcreteModel, t: int) -> Any:
+            # sum of starts in [t-mut+1 .. t] <= online[t]
+            return sum(start[t - k] for k in range(mut) if t - k >= 0) <= online[t]
+
+        mut_name = f"{name_prefix}_min_up_time"
+        setattr(model, mut_name, pyo.Constraint(T, rule=_mut_rule))
+        constraint_names.append(mut_name)
+
+    # Minimum down time (MDT): if stopped within the last min_off_time_intervals
+    # intervals, the genset must still be offline.
+    if config.min_off_time_intervals > 1:
+        mdt = config.min_off_time_intervals
+
+        def _mdt_rule(m: pyo.ConcreteModel, t: int) -> Any:
+            # sum of stops in [t-mdt+1 .. t] <= 1 - online[t]
+            return sum(stop[t - k] for k in range(mdt) if t - k >= 0) <= 1 - online[t]
+
+        mdt_name = f"{name_prefix}_min_down_time"
+        setattr(model, mdt_name, pyo.Constraint(T, rule=_mdt_rule))
+        constraint_names.append(mdt_name)
 
     # Ramp rate constraints (optional)
     if ramp_max is not None:
