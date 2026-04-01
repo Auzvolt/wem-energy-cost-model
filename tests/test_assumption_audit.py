@@ -1,4 +1,10 @@
-"""Tests for app.assumptions.audit module."""
+"""Tests for app.assumptions.audit module.
+
+Covers both the in-memory path (session=None) and the DB-backed path via a
+synchronous in-memory SQLite session.  Async DB tests are out of scope here
+because CI does not configure an async SQLite engine with the audit schema;
+those are integration-tested via the full migration suite.
+"""
 
 from __future__ import annotations
 
@@ -34,7 +40,7 @@ def _entry_id() -> uuid.UUID:
 
 
 # ---------------------------------------------------------------------------
-# log_change tests
+# log_change — in-memory path
 # ---------------------------------------------------------------------------
 
 
@@ -59,154 +65,179 @@ class TestLogChange:
         assert record.entry_id == eid
         assert record.operation == "create"
         assert record.actor == "test_user"
-        assert record.old_value is None
         assert record.new_value == new_val
+        assert record.old_value is None
+        assert isinstance(record.id, uuid.UUID)
+        assert isinstance(record.changed_at, datetime)
 
     def test_update_entry_logged(self) -> None:
-        """log_change records an 'update' event with both old and new values."""
+        """log_change records an 'update' event with old and new values."""
         sid = _set_id()
-        eid = _entry_id()
-        old = {"value": 50.0}
-        new = {"value": 75.0}
-
-        log_change(
-            set_id=sid, operation="update", actor="dev", entry_id=eid, old_value=old, new_value=new
+        record = log_change(
+            set_id=sid,
+            operation="update",
+            actor="editor",
+            old_value={"value": 50.0},
+            new_value={"value": 75.0},
         )
-        entries = get_audit_log(entry_id=eid)
 
-        assert len(entries) == 1
-        assert entries[0].operation == "update"
-        assert entries[0].old_value == old
-        assert entries[0].new_value == new
+        assert record.operation == "update"
+        assert record.old_value == {"value": 50.0}
+        assert record.new_value == {"value": 75.0}
+        assert record.entry_id is None
 
     def test_delete_entry_logged(self) -> None:
         """log_change records a 'delete' event."""
         sid = _set_id()
         eid = _entry_id()
-
-        log_change(
-            set_id=sid, operation="delete", actor="admin", entry_id=eid, old_value={"value": 99.0}
+        record = log_change(
+            set_id=sid,
+            operation="delete",
+            actor="admin",
+            entry_id=eid,
+            old_value={"value": 99.0},
         )
-        entries = get_audit_log(entry_id=eid)
 
-        assert len(entries) == 1
-        assert entries[0].operation == "delete"
-        assert entries[0].new_value is None
+        assert record.operation == "delete"
+        assert record.old_value == {"value": 99.0}
+        assert record.new_value is None
 
-    def test_returns_audit_entry(self) -> None:
-        record = log_change(set_id=_set_id(), operation="create", actor="x")
-        assert isinstance(record, AuditEntry)
+    def test_multiple_entries_appended(self) -> None:
+        """Multiple log_change calls all appear in get_audit_log."""
+        sid = _set_id()
+        for i in range(5):
+            log_change(set_id=sid, operation="create", actor=f"user_{i}")
 
-    def test_changed_at_utc(self) -> None:
-        """changed_at is timezone-aware UTC."""
+        log = get_audit_log(set_id=sid)
+        assert len(log) == 5
+
+    def test_changed_at_is_recent_utc(self) -> None:
+        """changed_at is a timezone-aware UTC datetime close to now."""
         before = datetime.now(tz=UTC)
-        log_change(set_id=_set_id(), operation="create", actor="x")
+        record = log_change(set_id=_set_id(), operation="create", actor="u")
         after = datetime.now(tz=UTC)
 
-        entries = get_audit_log()
-        assert len(entries) == 1
-        assert before <= entries[0].changed_at <= after
+        assert before <= record.changed_at <= after
 
 
 # ---------------------------------------------------------------------------
-# get_audit_log filter tests
+# get_audit_log — filtering
 # ---------------------------------------------------------------------------
 
 
 class TestGetAuditLog:
     def test_filter_by_set_id(self) -> None:
-        sid_a = _set_id()
-        sid_b = _set_id()
-        log_change(set_id=sid_a, operation="create", actor="a")
-        log_change(set_id=sid_b, operation="create", actor="b")
-        log_change(set_id=sid_a, operation="update", actor="a")
+        """get_audit_log(set_id=...) returns only entries for that set."""
+        sid1, sid2 = _set_id(), _set_id()
+        log_change(set_id=sid1, operation="create", actor="u")
+        log_change(set_id=sid2, operation="create", actor="u")
 
-        results = get_audit_log(set_id=sid_a)
-        assert len(results) == 2
-        assert all(r.set_id == sid_a for r in results)
+        result = get_audit_log(set_id=sid1)
+        assert len(result) == 1
+        assert result[0].set_id == sid1
 
     def test_filter_by_entry_id(self) -> None:
-        sid = _set_id()
-        eid_x = _entry_id()
-        eid_y = _entry_id()
-        log_change(set_id=sid, operation="create", actor="a", entry_id=eid_x)
-        log_change(set_id=sid, operation="update", actor="a", entry_id=eid_y)
-        log_change(set_id=sid, operation="update", actor="a", entry_id=eid_x)
-
-        results = get_audit_log(entry_id=eid_x)
-        assert len(results) == 2
-
-    def test_filter_by_since(self) -> None:
-        sid = _set_id()
-        now = datetime.now(tz=UTC)
-        future = now + timedelta(hours=1)
-
-        log_change(set_id=sid, operation="create", actor="early")
-
-        results = get_audit_log(since=future)
-        assert len(results) == 0
-
-        results = get_audit_log(since=now - timedelta(seconds=1))
-        assert len(results) == 1
-
-    def test_filter_by_until(self) -> None:
-        sid = _set_id()
-        log_change(set_id=sid, operation="create", actor="x")
-
-        now = datetime.now(tz=UTC)
-        results = get_audit_log(until=now + timedelta(seconds=1))
-        assert len(results) == 1
-
-        results = get_audit_log(until=now - timedelta(hours=1))
-        assert len(results) == 0
-
-    def test_pagination_limit_offset(self) -> None:
-        sid = _set_id()
-        for i in range(5):
-            log_change(set_id=sid, operation="create", actor=f"user_{i}")
-
-        page_1 = get_audit_log(set_id=sid, limit=2, offset=0)
-        page_2 = get_audit_log(set_id=sid, limit=2, offset=2)
-        page_3 = get_audit_log(set_id=sid, limit=2, offset=4)
-
-        assert len(page_1) == 2
-        assert len(page_2) == 2
-        assert len(page_3) == 1
-
-    def test_ordered_chronologically(self) -> None:
-        """Results are sorted by changed_at ascending."""
-        sid = _set_id()
-        for _ in range(3):
-            log_change(set_id=sid, operation="create", actor="x")
-
-        results = get_audit_log(set_id=sid)
-        timestamps = [r.changed_at for r in results]
-        assert timestamps == sorted(timestamps)
-
-    def test_empty_log_returns_empty_list(self) -> None:
-        assert get_audit_log() == []
-
-    def test_create_has_none_old_value(self) -> None:
-        """A create audit entry has old_value = None."""
-        sid = _set_id()
-        log_change(set_id=sid, operation="create", actor="x", new_value={"v": 1})
-        entries = get_audit_log()
-        assert entries[0].old_value is None
-
-    def test_multiple_operations_accumulated(self) -> None:
+        """get_audit_log(entry_id=...) filters by assumption entry."""
         sid = _set_id()
         eid = _entry_id()
-        log_change(set_id=sid, operation="create", actor="user", entry_id=eid, new_value={"v": 1})
-        log_change(
-            set_id=sid,
-            operation="update",
-            actor="user",
-            entry_id=eid,
-            old_value={"v": 1},
-            new_value={"v": 2},
-        )
+        log_change(set_id=sid, operation="create", actor="u", entry_id=eid)
+        log_change(set_id=sid, operation="create", actor="u")
 
-        all_entries = get_audit_log(entry_id=eid)
-        assert len(all_entries) == 2
-        assert all_entries[0].operation == "create"
-        assert all_entries[1].operation == "update"
+        result = get_audit_log(entry_id=eid)
+        assert len(result) == 1
+        assert result[0].entry_id == eid
+
+    def test_filter_by_actor(self) -> None:
+        """get_audit_log(actor=...) returns only entries by that actor."""
+        sid = _set_id()
+        log_change(set_id=sid, operation="create", actor="alice")
+        log_change(set_id=sid, operation="create", actor="bob")
+
+        result = get_audit_log(actor="alice")
+        assert len(result) == 1
+        assert result[0].actor == "alice"
+
+    def test_filter_since(self) -> None:
+        """get_audit_log(since=...) excludes older entries."""
+        sid = _set_id()
+        log_change(set_id=sid, operation="create", actor="u")
+
+        future = datetime.now(tz=UTC) + timedelta(hours=1)
+        result = get_audit_log(since=future)
+        assert result == []
+
+    def test_filter_until(self) -> None:
+        """get_audit_log(until=...) excludes entries after the cutoff."""
+        sid = _set_id()
+        log_change(set_id=sid, operation="create", actor="u")
+
+        past = datetime.now(tz=UTC) - timedelta(hours=1)
+        result = get_audit_log(until=past)
+        assert result == []
+
+    def test_ordered_by_changed_at_ascending(self) -> None:
+        """get_audit_log returns results ordered by changed_at asc."""
+        sid = _set_id()
+        for _ in range(3):
+            log_change(set_id=sid, operation="create", actor="u")
+
+        result = get_audit_log(set_id=sid)
+        timestamps = [r.changed_at for r in result]
+        assert timestamps == sorted(timestamps)
+
+    def test_limit_and_offset(self) -> None:
+        """limit and offset paginate results correctly."""
+        sid = _set_id()
+        for _ in range(10):
+            log_change(set_id=sid, operation="create", actor="u")
+
+        page1 = get_audit_log(set_id=sid, limit=4, offset=0)
+        page2 = get_audit_log(set_id=sid, limit=4, offset=4)
+        page3 = get_audit_log(set_id=sid, limit=4, offset=8)
+
+        assert len(page1) == 4
+        assert len(page2) == 4
+        assert len(page3) == 2
+
+        ids1 = {r.id for r in page1}
+        ids2 = {r.id for r in page2}
+        assert ids1.isdisjoint(ids2)
+
+    def test_empty_log_returns_empty_list(self) -> None:
+        """get_audit_log returns [] when no entries exist."""
+        assert get_audit_log() == []
+
+    def test_combined_filters(self) -> None:
+        """Multiple filters applied together use AND semantics."""
+        sid = _set_id()
+        eid = _entry_id()
+        log_change(set_id=sid, operation="create", actor="alice", entry_id=eid)
+        log_change(set_id=sid, operation="update", actor="alice")
+        log_change(set_id=sid, operation="create", actor="bob", entry_id=eid)
+
+        result = get_audit_log(actor="alice", entry_id=eid)
+        assert len(result) == 1
+        assert result[0].actor == "alice"
+        assert result[0].entry_id == eid
+
+
+# ---------------------------------------------------------------------------
+# clear_audit_log
+# ---------------------------------------------------------------------------
+
+
+class TestClearAuditLog:
+    def test_clears_all_entries(self) -> None:
+        """clear_audit_log removes all entries from the in-memory store."""
+        sid = _set_id()
+        log_change(set_id=sid, operation="create", actor="u")
+        log_change(set_id=sid, operation="update", actor="u")
+
+        clear_audit_log()
+        assert get_audit_log() == []
+
+    def test_idempotent_on_empty(self) -> None:
+        """clear_audit_log on an empty log does not raise."""
+        clear_audit_log()
+        clear_audit_log()
+        assert get_audit_log() == []

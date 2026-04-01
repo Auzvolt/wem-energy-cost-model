@@ -1,6 +1,8 @@
 """Assumption library repository — async CRUD and versioned retrieval.
 
 Provides database access for assumption sets and entries using SQLAlchemy async.
+Every mutating operation calls ``log_change_async()`` within the same session
+so audit rows are committed atomically with the data change.
 """
 
 from __future__ import annotations
@@ -11,6 +13,7 @@ from datetime import date, datetime
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.assumptions.audit import log_change_async
 from app.assumptions.models import AssumptionCategory, AssumptionEntry, AssumptionSet
 
 # ---------------------------------------------------------------------------
@@ -36,7 +39,7 @@ async def get_active_set(session: AsyncSession, as_of_date: date) -> AssumptionS
         The active AssumptionSet, or None if no sets exist.
     """
     # Import here to avoid circular imports during early scaffold phase
-    from db.assumption_orm import AssumptionEntryORM, AssumptionSetORM
+    from db.assumption_orm import AssumptionEntryORM, AssumptionSetORM  # noqa: PLC0415
 
     stmt = (
         select(AssumptionSetORM)
@@ -79,10 +82,13 @@ async def create_assumption_set(
     description: str | None = None,
     author: str | None = None,
     supersede_current: bool = True,
+    actor: str = "system",
 ) -> AssumptionSet:
     """Create a new assumption set, optionally superseding the current active set.
 
-    If supersede_current=True and there is an active set, sets `superseded_by`
+    An audit row (``create``) is inserted atomically in the same transaction.
+
+    If supersede_current=True and there is an active set, sets ``superseded_by``
     on the old set to the new set's ID.
 
     Args:
@@ -92,11 +98,12 @@ async def create_assumption_set(
         description: Optional description.
         author: Optional author identifier.
         supersede_current: Whether to supersede the currently active set.
+        actor: Opaque user/process identifier for the audit record.
 
     Returns:
         The newly created AssumptionSet (not yet flushed to DB).
     """
-    from db.assumption_orm import AssumptionSetORM
+    from db.assumption_orm import AssumptionSetORM  # noqa: PLC0415
 
     new_id = uuid.uuid4()
     now = datetime.utcnow()
@@ -122,6 +129,15 @@ async def create_assumption_set(
     session.add(new_orm)
     await session.flush()
 
+    # Audit: record creation within the same transaction
+    await log_change_async(
+        set_id=new_id,
+        operation="create",
+        actor=actor,
+        new_value={"name": name, "effective_from": str(effective_from)},
+        session=session,
+    )
+
     return AssumptionSet(
         id=new_id,
         name=name,
@@ -142,8 +158,11 @@ async def add_entry(
     value: object,
     unit: str | None = None,
     source: str | None = None,
+    actor: str = "system",
 ) -> AssumptionEntry:
     """Add an assumption entry to an existing set.
+
+    An audit row (``create``) is inserted atomically in the same transaction.
 
     Args:
         session: SQLAlchemy async session.
@@ -153,11 +172,12 @@ async def add_entry(
         value: JSON-serialisable value.
         unit: Optional unit label.
         source: Optional provenance label.
+        actor: Opaque user/process identifier for the audit record.
 
     Returns:
         The newly created AssumptionEntry.
     """
-    from db.assumption_orm import AssumptionEntryORM
+    from db.assumption_orm import AssumptionEntryORM  # noqa: PLC0415
 
     entry_id = uuid.uuid4()
     now = datetime.utcnow()
@@ -174,6 +194,16 @@ async def add_entry(
     )
     session.add(orm_entry)
     await session.flush()
+
+    # Audit: record entry creation within the same transaction
+    await log_change_async(
+        set_id=set_id,
+        operation="create",
+        actor=actor,
+        entry_id=entry_id,
+        new_value={"category": category.value, "key": key, "value": value},
+        session=session,
+    )
 
     return AssumptionEntry(
         id=entry_id,
@@ -193,7 +223,7 @@ async def get_entries_by_category(
     category: AssumptionCategory,
 ) -> list[AssumptionEntry]:
     """Retrieve all entries of a given category from an assumption set."""
-    from db.assumption_orm import AssumptionEntryORM
+    from db.assumption_orm import AssumptionEntryORM  # noqa: PLC0415
 
     stmt = select(AssumptionEntryORM).where(
         AssumptionEntryORM.set_id == set_id,
