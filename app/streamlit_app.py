@@ -6,7 +6,9 @@ Run with:
 
 from __future__ import annotations
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
