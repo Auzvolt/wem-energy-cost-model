@@ -65,11 +65,13 @@ def _load_credentials() -> dict[str, Any]:
 
     # Try Streamlit secrets (Streamlit Cloud)
     try:
+
         def _deep_dict(obj):
             try:
                 return {k: _deep_dict(v) for k, v in dict(obj).items()}
             except (TypeError, ValueError):
                 return obj
+
         return cast(dict[str, Any], _deep_dict(st.secrets["credentials"]))
     except (KeyError, FileNotFoundError):
         pass
