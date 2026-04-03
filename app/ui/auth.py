@@ -28,6 +28,7 @@ Generate bcrypt hashes::
 
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -87,7 +88,12 @@ def login() -> bool:
     """
     import streamlit_authenticator as stauth  # noqa: PLC0415
 
-    credentials = json.loads(json.dumps(_load_credentials()))
+    # Deep-copy the credentials dict so streamlit-authenticator can mutate it
+    # freely (e.g. to track failed login attempts) without touching the
+    # immutable st.secrets object.  copy.deepcopy() is used in preference to
+    # json.loads(json.dumps(...)) because the latter raises TypeError on any
+    # non-JSON-serialisable value that may appear in secrets.
+    credentials = copy.deepcopy(_load_credentials())
 
     authenticator = stauth.Authenticate(
         credentials,
@@ -96,6 +102,8 @@ def login() -> bool:
         _COOKIE_EXPIRY_DAYS,
     )
 
+    # streamlit-authenticator 0.3.3 dropped the positional `form_name`
+    # argument from Authenticate.login() — only keyword arguments are accepted.
     _name, authentication_status, _username = authenticator.login(location="main")
 
     if authentication_status is True:
