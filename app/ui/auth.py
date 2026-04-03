@@ -65,7 +65,7 @@ def _load_credentials() -> dict[str, Any]:
 
     # Try Streamlit secrets (Streamlit Cloud)
     try:
-        return cast(dict[str, Any], dict(st.secrets["credentials"]))
+        return cast(dict[str, Any], json.loads(json.dumps(dict(st.secrets["credentials"]))))
     except (KeyError, FileNotFoundError):
         pass
 
