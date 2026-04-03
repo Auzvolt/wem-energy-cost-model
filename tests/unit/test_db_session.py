@@ -1,7 +1,5 @@
 """Tests for app.db.session URL helpers."""
 
-
-
 # Import the private helpers directly so we can unit-test them without spinning
 # up a real database engine.
 from app.db.session import _PLACEHOLDER_URL, _ensure_ssl
