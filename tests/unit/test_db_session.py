@@ -1,11 +1,10 @@
 """Tests for app.db.session URL helpers."""
 
-import pytest
 
 
 # Import the private helpers directly so we can unit-test them without spinning
 # up a real database engine.
-from app.db.session import _ensure_ssl, _PLACEHOLDER_URL
+from app.db.session import _PLACEHOLDER_URL, _ensure_ssl
 
 
 class TestEnsureSsl:
