@@ -87,7 +87,7 @@ def login() -> bool:
     """
     import streamlit_authenticator as stauth  # noqa: PLC0415
 
-    credentials = _load_credentials()
+    credentials = json.loads(json.dumps(_load_credentials()))
 
     authenticator = stauth.Authenticate(
         credentials,
