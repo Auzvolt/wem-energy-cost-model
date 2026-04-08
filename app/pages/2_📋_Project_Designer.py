@@ -116,12 +116,16 @@ if selected_id is None:
     st.info("Create a project in the sidebar to get started.")
     st.stop()
 
+assert selected_id is not None  # narrow type for mypy
+
 with SessionLocal() as _session:
     active_project = get_project(_session, selected_id)
 
 if active_project is None:
     st.error("Selected project could not be loaded.")
     st.stop()
+
+assert active_project is not None  # narrow type for mypy
 
 st.subheader(f"🗂️ {active_project.name}")
 if active_project.description:
